@@ -39,12 +39,13 @@ async function fetchBooks(reset = false) {
   loading.value = true
   try {
     const res = await bookApi.getBooks({ page: page.value, limit: 20 })
+    const booksData = res?.books || res?.data?.books || []
     if (reset) {
-      books.value = res.books || res
+      books.value = booksData
     } else {
-      books.value = [...books.value, ...(res.books || res)]
+      books.value = [...books.value, ...booksData]
     }
-    hasMore.value = res.books?.length === 20
+    hasMore.value = booksData.length === 20
     page.value++
   } catch (error) {
     console.error('获取书籍失败:', error)

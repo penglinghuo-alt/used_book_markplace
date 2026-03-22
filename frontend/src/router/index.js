@@ -67,6 +67,12 @@ const routes = [
     meta: { title: '编辑资料', requiresAuth: true }
   },
   {
+    path: '/user/:id',
+    name: 'UserProfile',
+    component: () => import('@/views/user/UserProfile.vue'),
+    meta: { title: '查看资料' }
+  },
+  {
     path: '/transactions',
     name: 'Transactions',
     component: () => import('@/views/user/Transactions.vue'),

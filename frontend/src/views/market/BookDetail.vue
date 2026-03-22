@@ -63,6 +63,19 @@ async function contactSeller() {
   }
 }
 
+function viewSellerProfile() {
+  if (!seller.value) return
+  router.push(`/user/${seller.value.id}`)
+}
+
+function goToChat() {
+  if (!userStore.isLoggedIn) {
+    router.push({ name: 'Login', query: { redirect: route.fullPath } })
+    return
+  }
+  router.push(`/messages/chat/${book.value.seller_id}?bookId=${book.value.id}`)
+}
+
 async function markAsSold() {
   if (!confirm('确定要将此书籍标记为已售出吗？')) return
   
@@ -154,7 +167,7 @@ onMounted(() => {
                 <span class="title-icon">👤</span>
                 卖家信息
               </h3>
-              <div class="seller-info" v-if="seller">
+              <div class="seller-info clickable" v-if="seller" @click="viewSellerProfile">
                 <div class="seller-avatar">
                   {{ seller.username?.charAt(0).toUpperCase() }}
                 </div>
@@ -162,6 +175,7 @@ onMounted(() => {
                   <p class="seller-name">{{ seller.username }}</p>
                   <p class="seller-bio" v-if="seller.bio">{{ seller.bio }}</p>
                 </div>
+                <span class="view-profile-hint">点击查看资料 ›</span>
               </div>
               <div class="seller-info" v-else>
                 <div class="seller-avatar">?</div>
@@ -169,24 +183,14 @@ onMounted(() => {
                   <p class="seller-name">加载中...</p>
                 </div>
               </div>
-              
-              <div class="contact-section" v-if="seller?.wechat_id && !isOwner">
-                <div class="wechat-info">
-                  <span class="wechat-icon">💬</span>
-                  <span>微信号：{{ seller.wechat_id }}</span>
-                </div>
-              </div>
             </div>
           </div>
 
           <div class="detail-actions">
             <template v-if="!isOwner && book.status === 'active'">
-              <button class="action-btn primary" @click="contactSeller" :disabled="contacting">
-                <span v-if="contacting">跳转中...</span>
-                <template v-else>
-                  <span>💬</span>
-                  <span>联系卖家</span>
-                </template>
+              <button class="action-btn primary large" @click="goToChat">
+                <span>💬</span>
+                <span>立即聊天</span>
               </button>
             </template>
             
@@ -461,6 +465,23 @@ onMounted(() => {
   margin-top: 4px;
 }
 
+.seller-info.clickable {
+  cursor: pointer;
+  padding: 12px;
+  margin: -12px;
+  border-radius: var(--radius);
+  transition: background var(--transition);
+}
+
+.seller-info.clickable:hover {
+  background: var(--bg-hover);
+}
+
+.view-profile-hint {
+  color: var(--primary);
+  font-size: 0.875rem;
+}
+
 .contact-section {
   margin-top: 16px;
   padding-top: 16px;
@@ -515,6 +536,11 @@ onMounted(() => {
 .action-btn.primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+}
+
+.action-btn.primary.large {
+  padding: 18px 32px;
+  font-size: 1.125rem;
 }
 
 .action-btn.primary:disabled {
