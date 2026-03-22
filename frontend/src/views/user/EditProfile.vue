@@ -1,0 +1,302 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+
+const router = useRouter()
+const userStore = useUserStore()
+
+const form = ref({
+  username: '',
+  bio: '',
+  wechat_id: ''
+})
+
+const loading = ref(false)
+const success = ref(false)
+
+onMounted(() => {
+  if (userStore.user) {
+    form.value = {
+      username: userStore.user.username || '',
+      bio: userStore.user.bio || '',
+      wechat_id: userStore.user.wechat_id || ''
+    }
+  }
+})
+
+async function handleSubmit() {
+  loading.value = true
+  success.value = false
+
+  try {
+    await userStore.updateProfile({
+      bio: form.value.bio.trim(),
+      wechat_id: form.value.wechat_id.trim()
+    })
+    success.value = true
+    setTimeout(() => {
+      router.back()
+    }, 1500)
+  } catch (error) {
+    console.error('更新失败:', error)
+    alert(error.response?.data?.message || '更新失败，请重试')
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="edit-page">
+    <div class="page-header">
+      <div class="header-content">
+        <button class="back-btn" @click="router.back()">
+          <span>←</span>
+        </button>
+        <h1 class="page-title">编辑资料</h1>
+        <button class="save-btn" @click="handleSubmit" :disabled="loading">
+          {{ loading ? '保存中...' : '保存' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="edit-content">
+      <div class="container">
+        <div class="avatar-section">
+          <div class="avatar-preview">
+            {{ form.username?.charAt(0).toUpperCase() || '?' }}
+          </div>
+          <p class="avatar-tip">头像由用户名首字母自动生成</p>
+        </div>
+
+        <form @submit.prevent="handleSubmit" class="edit-form">
+          <div v-if="success" class="success-alert">
+            <span>✅</span>
+            保存成功！
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">用户名</label>
+            <input 
+              v-model="form.username"
+              type="text" 
+              class="form-input"
+              disabled
+              placeholder="用户名"
+            />
+            <span class="form-hint">用户名暂时无法修改</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">个性签名</label>
+            <textarea 
+              v-model="form.bio"
+              class="form-textarea"
+              placeholder="介绍一下自己..."
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              微信号
+              <span class="required">*</span>
+            </label>
+            <input 
+              v-model="form.wechat_id"
+              type="text" 
+              class="form-input"
+              placeholder="请输入您的微信号"
+            />
+            <span class="form-hint">设置微信号方便买家联系你</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.edit-page {
+  min-height: 100vh;
+}
+
+.page-header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--text-primary);
+  transition: background var(--transition);
+}
+
+.back-btn:hover {
+  background: var(--bg-hover);
+}
+
+.page-title {
+  flex: 1;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.save-btn {
+  padding: 8px 20px;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius);
+  font-weight: 600;
+  transition: all var(--transition);
+}
+
+.save-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.edit-content {
+  padding: 24px 0;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.avatar-section {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.avatar-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 auto;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+}
+
+.avatar-tip {
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+
+.edit-form {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.success-alert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #d1fae5;
+  border-radius: var(--radius);
+  color: #065f46;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.dark .success-alert {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.required {
+  color: var(--error);
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all var(--transition);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-input:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+</style>
