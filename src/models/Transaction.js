@@ -286,8 +286,8 @@ class Transaction {
                     SELECT 
                         COUNT(*) as total_transactions,
                         SUM(b.price) as total_revenue,
-                        COUNT(DISTINCT seller_id) as sellers_count,
-                        COUNT(DISTINCT buyer_id) as buyers_count
+                        COUNT(DISTINCT t.seller_id) as sellers_count,
+                        COUNT(DISTINCT t.buyer_id) as buyers_count
                     FROM transactions t
                     JOIN books b ON t.book_id = b.id
                     WHERE t.seller_id = ?
@@ -299,8 +299,8 @@ class Transaction {
                     SELECT 
                         COUNT(*) as total_transactions,
                         SUM(b.price) as total_revenue,
-                        COUNT(DISTINCT seller_id) as sellers_count,
-                        COUNT(DISTINCT buyer_id) as buyers_count
+                        COUNT(DISTINCT t.seller_id) as sellers_count,
+                        COUNT(DISTINCT t.buyer_id) as buyers_count
                     FROM transactions t
                     JOIN books b ON t.book_id = b.id
                 `;
