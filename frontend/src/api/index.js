@@ -16,6 +16,13 @@ export const userApi = {
   updatePassword(data) {
     return api.put('/users/me/password', data)
   },
+  uploadAvatar(formData) {
+    return api.post('/users/me/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
   getUserList() {
     return api.get('/users')
   },

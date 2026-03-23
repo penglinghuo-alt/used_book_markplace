@@ -82,7 +82,7 @@ class User {
      */
     static async findById(id) {
         try {
-            const sql = 'SELECT id, username, bio, wechat_id, created_at FROM users WHERE id = ?';
+            const sql = 'SELECT id, username, bio, wechat_id, avatar_url, created_at FROM users WHERE id = ?';
             const users = await db.query(sql, [id]);
             return users.length > 0 ? users[0] : null;
         } catch (error) {
@@ -113,12 +113,11 @@ class User {
      * @param {Object} updates - 要更新的字段
      * @returns {Promise<boolean>} 更新是否成功
      */
-    static async update(id, { bio, wechat_id }) {
+    static async update(id, { bio, wechat_id, avatar_url }) {
         try {
             const fields = [];
             const values = [];
             
-            // 构建动态更新语句
             if (bio !== undefined) {
                 fields.push('bio = ?');
                 values.push(bio);
@@ -127,12 +126,16 @@ class User {
                 fields.push('wechat_id = ?');
                 values.push(wechat_id);
             }
-            
-            if (fields.length === 0) {
-                return false; // 没有要更新的字段
+            if (avatar_url !== undefined) {
+                fields.push('avatar_url = ?');
+                values.push(avatar_url);
             }
             
-            values.push(id); // 添加 WHERE 条件的 ID
+            if (fields.length === 0) {
+                return false;
+            }
+            
+            values.push(id);
             const sql = `UPDATE users SET ${fields.join(', ')} WHERE id = ?`;
             
             const affectedRows = await db.execute(sql, values);

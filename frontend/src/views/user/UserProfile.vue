@@ -66,7 +66,8 @@ const isOwnProfile = computed(() => {
     <div v-else-if="user" class="profile-content">
       <div class="profile-header">
         <div class="avatar-large">
-          {{ user.username?.charAt(0).toUpperCase() || '?' }}
+          <img v-if="user.avatar_url" :src="user.avatar_url" alt="头像" class="avatar-img" />
+          <span v-else>{{ user.username?.charAt(0).toUpperCase() || '?' }}</span>
         </div>
         <h2 class="username">{{ user.username }}</h2>
         <p class="join-date" v-if="user.created_at">
@@ -205,6 +206,13 @@ export default {
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0 auto 16px;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .username {

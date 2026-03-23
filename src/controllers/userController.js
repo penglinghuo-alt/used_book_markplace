@@ -132,6 +132,7 @@ const getProfile = asyncHandler(async (req, res) => {
                 username: user.username,
                 bio: user.bio,
                 wechat_id: user.wechat_id,
+                avatar_url: user.avatar_url,
                 created_at: user.created_at
             }
         }
@@ -159,8 +160,8 @@ const getUserById = asyncHandler(async (req, res) => {
                 id: user.id,
                 username: user.username,
                 bio: user.bio,
+                avatar_url: user.avatar_url,
                 created_at: user.created_at
-                // 不返回 wechat_id 和 password_hash
             }
         }
     });
@@ -206,7 +207,6 @@ const updateProfile = asyncHandler(async (req, res) => {
         throw new AppError('没有要更新的内容', 400);
     }
     
-    // 获取更新后的用户信息
     const updatedUser = await User.findById(req.user.id);
     
     logger.info(`用户资料更新`, { userId: req.user.id });
@@ -220,6 +220,7 @@ const updateProfile = asyncHandler(async (req, res) => {
                 username: updatedUser.username,
                 bio: updatedUser.bio,
                 wechat_id: updatedUser.wechat_id,
+                avatar_url: updatedUser.avatar_url,
                 created_at: updatedUser.created_at
             }
         }
@@ -263,6 +264,28 @@ const updatePassword = asyncHandler(async (req, res) => {
     });
 });
 
+const uploadAvatar = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        throw new AppError('请选择要上传的头像图片', 400);
+    }
+
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+    await User.update(req.user.id, {
+        avatar_url: avatarUrl
+    });
+
+    logger.info(`用户头像更新成功`, { userId: req.user.id, avatarUrl });
+
+    res.status(200).json({
+        success: true,
+        message: '头像上传成功',
+        data: {
+            avatar_url: avatarUrl
+        }
+    });
+});
+
 module.exports = {
     register,
     login,
@@ -270,5 +293,6 @@ module.exports = {
     getUserById,
     getAllUsers,
     updateProfile,
-    updatePassword
+    updatePassword,
+    uploadAvatar
 };

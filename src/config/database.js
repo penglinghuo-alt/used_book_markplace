@@ -110,6 +110,7 @@ async function initializeDatabase() {
             password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希值',
             bio VARCHAR(255) DEFAULT '' COMMENT '个性签名',
             wechat_id VARCHAR(100) DEFAULT NULL COMMENT '微信联系方式',
+            avatar_url VARCHAR(500) DEFAULT NULL COMMENT '头像URL',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
             INDEX idx_username (username)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表'
@@ -168,6 +169,15 @@ async function initializeDatabase() {
         console.log('📦 正在初始化数据库表...');
         await query(createUserTable);
         console.log('✅ users 表创建成功');
+        
+        try {
+            await query("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) DEFAULT NULL COMMENT '头像URL' AFTER wechat_id");
+            console.log('✅ users 表 avatar_url 列添加成功');
+        } catch (e) {
+            if (e.code !== 'ER_DUP_FIELDNAME') {
+                console.log('ℹ️ avatar_url 列已存在或无需添加');
+            }
+        }
         
         await query(createBookTable);
         console.log('✅ books 表创建成功');

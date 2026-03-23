@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { userApi } from '@/api'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -12,8 +13,17 @@ const form = ref({
   wechat_id: ''
 })
 
+const avatarFile = ref(null)
+const avatarPreview = ref('')
 const loading = ref(false)
+const uploading = ref(false)
 const success = ref(false)
+
+const displayAvatar = computed(() => {
+  if (avatarPreview.value) return avatarPreview.value
+  if (userStore.user?.avatar_url) return userStore.user.avatar_url
+  return ''
+})
 
 onMounted(() => {
   if (userStore.user) {
@@ -25,11 +35,49 @@ onMounted(() => {
   }
 })
 
+function handleAvatarChange(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  
+  if (file.size > 2 * 1024 * 1024) {
+    alert('图片大小不能超过 2MB')
+    return
+  }
+  
+  avatarFile.value = file
+  avatarPreview.value = URL.createObjectURL(file)
+}
+
+async function uploadAvatar() {
+  if (!avatarFile.value) return
+  
+  uploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('avatar', avatarFile.value)
+    
+    const res = await userApi.uploadAvatar(formData)
+    
+    await userStore.fetchProfile()
+    
+    avatarFile.value = null
+  } catch (error) {
+    console.error('上传头像失败:', error)
+    alert(error.response?.data?.message || '上传头像失败，请重试')
+  } finally {
+    uploading.value = false
+  }
+}
+
 async function handleSubmit() {
   loading.value = true
   success.value = false
 
   try {
+    if (avatarFile.value) {
+      await uploadAvatar()
+    }
+    
     await userStore.updateProfile({
       bio: form.value.bio.trim(),
       wechat_id: form.value.wechat_id.trim()
@@ -55,7 +103,7 @@ async function handleSubmit() {
           <span>←</span>
         </button>
         <h1 class="page-title">编辑资料</h1>
-        <button class="save-btn" @click="handleSubmit" :disabled="loading">
+        <button class="save-btn" @click="handleSubmit" :disabled="loading || uploading">
           {{ loading ? '保存中...' : '保存' }}
         </button>
       </div>
@@ -65,9 +113,19 @@ async function handleSubmit() {
       <div class="container">
         <div class="avatar-section">
           <div class="avatar-preview">
-            {{ form.username?.charAt(0).toUpperCase() || '?' }}
+            <img v-if="displayAvatar" :src="displayAvatar" alt="头像" class="avatar-img" />
+            <span v-else>{{ form.username?.charAt(0).toUpperCase() || '?' }}</span>
           </div>
-          <p class="avatar-tip">头像由用户名首字母自动生成</p>
+          <label class="avatar-upload-btn">
+            <input 
+              type="file" 
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              @change="handleAvatarChange"
+              hidden
+            />
+            {{ uploading ? '上传中...' : '更换头像' }}
+          </label>
+          <p class="avatar-tip">支持 JPG、PNG、GIF、WebP 格式，最大 2MB</p>
         </div>
 
         <form @submit.prevent="handleSubmit" class="edit-form">
@@ -209,11 +267,34 @@ async function handleSubmit() {
   font-weight: 700;
   margin: 0 auto;
   box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-upload-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.avatar-upload-btn:hover {
+  background: var(--bg-hover);
 }
 
 .avatar-tip {
-  margin-top: 12px;
-  font-size: 0.875rem;
+  margin-top: 8px;
+  font-size: 0.75rem;
   color: var(--text-tertiary);
 }
 

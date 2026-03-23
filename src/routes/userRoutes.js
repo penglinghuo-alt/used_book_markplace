@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const { auth } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 const {
     validate,
     registerValidation,
@@ -96,6 +97,18 @@ router.get(
     auth,
     validate(idParamValidation),
     userController.getUserById
+);
+
+/**
+ * @route   POST /api/users/me/avatar
+ * @desc    上传用户头像
+ * @access  需要认证
+ */
+router.post(
+    '/me/avatar',
+    auth,
+    upload.single('avatar'),
+    userController.uploadAvatar
 );
 
 module.exports = router;
