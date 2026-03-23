@@ -12,6 +12,7 @@
 const User = require('../models/User');
 const { generateToken } = require('../middleware/auth');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
+const { validateCaptcha } = require('../utils/captcha');
 const logger = require('../config/logger');
 
 /**
@@ -23,19 +24,27 @@ const logger = require('../config/logger');
  *   "username": "用户名",
  *   "password": "密码",
  *   "bio": "个性签名(可选)",
- *   "wechat_id": "微信ID(可选)"
+ *   "wechat_id": "微信ID(可选)",
+ *   "captchaToken": "验证码Token",
+ *   "captchaInput": "用户输入的验证码"
  * }
  */
 const register = asyncHandler(async (req, res) => {
-    const { username, password, bio, wechat_id } = req.body;
+    const { username, password, bio, wechat_id, captchaToken, captchaInput } = req.body;
     
-    // 检查用户名是否已存在
+    if (!captchaToken || !captchaInput) {
+        throw new AppError('请输入验证码', 400);
+    }
+    
+    if (!validateCaptcha(captchaToken, captchaInput)) {
+        throw new AppError('验证码错误', 400);
+    }
+    
     const existingUser = await User.findByUsername(username);
     if (existingUser) {
         throw new AppError('用户名已存在', 400);
     }
     
-    // 创建新用户
     const user = await User.create({
         username,
         password,
@@ -43,12 +52,10 @@ const register = asyncHandler(async (req, res) => {
         wechat_id: wechat_id || null
     });
     
-    // 生成 JWT 令牌
     const token = generateToken({ userId: user.id });
     
     logger.info(`用户注册成功`, { userId: user.id, username });
     
-    // 返回成功响应
     res.status(201).json({
         success: true,
         message: '注册成功',
@@ -72,30 +79,36 @@ const register = asyncHandler(async (req, res) => {
  * 请求体：
  * {
  *   "username": "用户名",
- *   "password": "密码"
+ *   "password": "密码",
+ *   "captchaToken": "验证码Token",
+ *   "captchaInput": "用户输入的验证码"
  * }
  */
 const login = asyncHandler(async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, captchaToken, captchaInput } = req.body;
     
-    // 查找用户
+    if (!captchaToken || !captchaInput) {
+        throw new AppError('请输入验证码', 400);
+    }
+    
+    if (!validateCaptcha(captchaToken, captchaInput)) {
+        throw new AppError('验证码错误', 400);
+    }
+    
     const user = await User.findByUsername(username);
     if (!user) {
         throw new AppError('用户名或密码错误', 401);
     }
     
-    // 验证密码
     const isValidPassword = await User.verifyPassword(password, user.password_hash);
     if (!isValidPassword) {
         throw new AppError('用户名或密码错误', 401);
     }
     
-    // 生成 JWT 令牌
     const token = generateToken({ userId: user.id });
     
     logger.info(`用户登录成功`, { userId: user.id, username });
     
-    // 返回成功响应（不包含密码）
     res.status(200).json({
         success: true,
         message: '登录成功',

@@ -1,7 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { userApi } from '@/api'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -11,11 +12,32 @@ const form = ref({
   password: '',
   confirmPassword: '',
   bio: '',
-  wechat_id: ''
+  wechat_id: '',
+  captchaToken: '',
+  captchaInput: ''
+})
+
+const captcha = ref({
+  token: '',
+  data: ''
 })
 
 const loading = ref(false)
 const error = ref('')
+
+async function fetchCaptcha() {
+  try {
+    const res = await userApi.getCaptcha()
+    captcha.value = res.data
+    form.value.captchaToken = res.data.token
+  } catch (e) {
+    console.error('获取验证码失败', e)
+  }
+}
+
+onMounted(() => {
+  fetchCaptcha()
+})
 
 async function handleRegister() {
   error.value = ''
@@ -35,6 +57,11 @@ async function handleRegister() {
     return
   }
 
+  if (!form.value.captchaInput) {
+    error.value = '请输入验证码'
+    return
+  }
+
   loading.value = true
 
   try {
@@ -42,11 +69,15 @@ async function handleRegister() {
       username: form.value.username,
       password: form.value.password,
       bio: form.value.bio,
-      wechat_id: form.value.wechat_id
+      wechat_id: form.value.wechat_id,
+      captchaToken: form.value.captchaToken,
+      captchaInput: form.value.captchaInput
     })
     router.push('/market')
   } catch (e) {
     error.value = e.message || '注册失败，请重试'
+    form.value.captchaInput = ''
+    fetchCaptcha()
   } finally {
     loading.value = false
   }
@@ -99,6 +130,20 @@ async function handleRegister() {
             class="form-input"
             placeholder="再次输入密码"
           />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">验证码</label>
+          <div class="captcha-row">
+            <input 
+              v-model="form.captchaInput"
+              type="text" 
+              class="form-input captcha-input"
+              placeholder="请输入验证码"
+              maxlength="6"
+            />
+            <div class="captcha-image" @click="fetchCaptcha" v-html="captcha.data"></div>
+          </div>
         </div>
 
         <div class="form-group">
@@ -261,6 +306,34 @@ async function handleRegister() {
 
 .form-input::placeholder {
   color: var(--text-tertiary);
+}
+
+.captcha-row {
+  display: flex;
+  gap: 12px;
+}
+
+.captcha-input {
+  flex: 1;
+}
+
+.captcha-image {
+  width: 120px;
+  height: 42px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--border);
+  transition: border-color var(--transition);
+}
+
+.captcha-image:hover {
+  border-color: var(--primary);
+}
+
+.captcha-image :deep(svg) {
+  width: 100%;
+  height: 100%;
 }
 
 .submit-btn {

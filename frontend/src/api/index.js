@@ -7,6 +7,12 @@ export const userApi = {
   login(data) {
     return api.post('/users/login', data)
   },
+  getCaptcha() {
+    return api.get('/users/captcha')
+  },
+  verifyCaptcha(token, input) {
+    return api.post('/users/verify-captcha', { token, userInput: input })
+  },
   getProfile() {
     return api.get('/users/me')
   },

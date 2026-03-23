@@ -1,7 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { userApi } from '@/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -9,11 +10,32 @@ const userStore = useUserStore()
 
 const form = ref({
   username: '',
-  password: ''
+  password: '',
+  captchaToken: '',
+  captchaInput: ''
+})
+
+const captcha = ref({
+  token: '',
+  data: ''
 })
 
 const loading = ref(false)
 const error = ref('')
+
+async function fetchCaptcha() {
+  try {
+    const res = await userApi.getCaptcha()
+    captcha.value = res.data
+    form.value.captchaToken = res.data.token
+  } catch (e) {
+    console.error('获取验证码失败', e)
+  }
+}
+
+onMounted(() => {
+  fetchCaptcha()
+})
 
 async function handleLogin() {
   if (!form.value.username || !form.value.password) {
@@ -21,15 +43,27 @@ async function handleLogin() {
     return
   }
 
+  if (!form.value.captchaInput) {
+    error.value = '请输入验证码'
+    return
+  }
+
   loading.value = true
   error.value = ''
 
   try {
-    await userStore.login(form.value)
+    await userStore.login({
+      username: form.value.username,
+      password: form.value.password,
+      captchaToken: form.value.captchaToken,
+      captchaInput: form.value.captchaInput
+    })
     const redirect = route.query.redirect || '/market'
     router.push(redirect)
   } catch (e) {
     error.value = e.message || '登录失败，请检查用户名和密码'
+    form.value.captchaInput = ''
+    fetchCaptcha()
   } finally {
     loading.value = false
   }
@@ -91,6 +125,20 @@ function handleDemoLogin() {
             class="form-input"
             placeholder="请输入密码"
           />
+        </div>
+
+        <div class="form-group captcha-group">
+          <label class="form-label">验证码</label>
+          <div class="captcha-row">
+            <input 
+              v-model="form.captchaInput"
+              type="text" 
+              class="form-input captcha-input"
+              placeholder="请输入验证码"
+              maxlength="6"
+            />
+            <div class="captcha-image" @click="fetchCaptcha" v-html="captcha.data"></div>
+          </div>
         </div>
 
         <button type="submit" class="submit-btn" :disabled="loading">
@@ -226,6 +274,38 @@ function handleDemoLogin() {
 
 .form-input::placeholder {
   color: var(--text-tertiary);
+}
+
+.captcha-group .form-label {
+  margin-bottom: 4px;
+}
+
+.captcha-row {
+  display: flex;
+  gap: 12px;
+}
+
+.captcha-input {
+  flex: 1;
+}
+
+.captcha-image {
+  width: 120px;
+  height: 42px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--border);
+  transition: border-color var(--transition);
+}
+
+.captcha-image:hover {
+  border-color: var(--primary);
+}
+
+.captcha-image :deep(svg) {
+  width: 100%;
+  height: 100%;
 }
 
 .submit-btn {

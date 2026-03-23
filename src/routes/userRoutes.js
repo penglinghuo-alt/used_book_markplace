@@ -10,6 +10,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const { auth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { generateCaptcha, validateCaptcha } = require('../utils/captcha');
 const {
     validate,
     registerValidation,
@@ -18,6 +19,36 @@ const {
     idParamValidation,
     paginationValidation
 } = require('../middleware/validation');
+
+/**
+ * @route   GET /api/users/captcha
+ * @desc    获取图形验证码
+ * @access  公开
+ */
+router.get('/captcha', (req, res) => {
+    const captcha = generateCaptcha();
+    res.json({
+        success: true,
+        data: {
+            token: captcha.token,
+            captcha: captcha.data
+        }
+    });
+});
+
+/**
+ * @route   POST /api/users/verify-captcha
+ * @desc    验证验证码
+ * @access  公开
+ */
+router.post('/verify-captcha', (req, res) => {
+    const { token, userInput } = req.body;
+    const isValid = validateCaptcha(token, userInput);
+    res.json({
+        success: isValid,
+        message: isValid ? '验证成功' : '验证码错误'
+    });
+});
 
 /**
  * @route   POST /api/users/register
