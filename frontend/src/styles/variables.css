@@ -155,41 +155,41 @@ img {
 }
 
 .fox {
-  --primary: #e74c3c;
-  --primary-light: #ff6b6b;
-  --primary-dark: #c0392b;
-  --secondary: #f39c12;
-  --secondary-light: #f1c40f;
+  --primary: #ff69b4;
+  --primary-light: #ff8ec7;
+  --primary-dark: #ff1493;
+  --secondary: #ffb6c1;
+  --secondary-light: #ffc0cb;
   
-  --bg-primary: #fffafa;
-  --bg-secondary: #fef5f5;
+  --bg-primary: #fff0f5;
+  --bg-secondary: #fff5f7;
   --bg-card: #ffffff;
-  --bg-hover: #fde8e8;
+  --bg-hover: #ffe4e9;
   
-  --text-primary: #2c1810;
-  --text-secondary: #5d4037;
-  --text-tertiary: #8d6e63;
+  --text-primary: #4a2040;
+  --text-secondary: #8b4572;
+  --text-tertiary: #c77daf;
   
-  --border: #ffccbc;
-  --border-light: #ffe8e0;
+  --border: #ffd9e8;
+  --border-light: #ffe8f0;
   
-  --success: #27ae60;
-  --warning: #f39c12;
-  --error: #e74c3c;
-  --info: #e74c3c;
+  --success: #2ecc71;
+  --warning: #ff69b4;
+  --error: #ff4757;
+  --info: #ff69b4;
   
-  --shadow-sm: 0 1px 2px 0 rgb(231 76 60 / 0.1);
-  --shadow: 0 1px 3px 0 rgb(231 76 60 / 0.15), 0 1px 2px -1px rgb(231 76 60 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(231 76 60 / 0.15), 0 2px 4px -2px rgb(231 76 60 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(231 76 60 / 0.15), 0 4px 6px -4px rgb(231 76 60 / 0.1);
+  --shadow-sm: 0 1px 2px 0 rgb(255 105 180 / 0.1);
+  --shadow: 0 1px 3px 0 rgb(255 105 180 / 0.12), 0 1px 2px -1px rgb(255 105 180 / 0.08);
+  --shadow-md: 0 4px 6px -1px rgb(255 105 180 / 0.12), 0 2px 4px -2px rgb(255 105 180 / 0.08);
+  --shadow-lg: 0 10px 15px -3px rgb(255 105 180 / 0.12), 0 4px 6px -4px rgb(255 105 180 / 0.08);
 }
 
 .fox .page-header {
-  background: rgba(255, 250, 250, 0.9);
+  background: rgba(255, 240, 245, 0.92);
 }
 
 .fox .app-header {
-  background: rgba(255, 250, 250, 0.95);
+  background: rgba(255, 250, 253, 0.95);
 }
 
 .fox .app-tabbar {
@@ -198,5 +198,38 @@ img {
 }
 
 .fox .header-bg {
-  background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
+  background: linear-gradient(135deg, #ff69b4 0%, #ffc0cb 50%, #ffb6c1 100%);
+}
+
+.fox .profile-header {
+  background: linear-gradient(180deg, rgba(255,182,193,0.3) 0%, transparent 100%);
+}
+
+.fox .stat-card {
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe4e9 100%);
+}
+
+.fox .menu-item:hover {
+  background: var(--bg-hover);
+}
+
+.fox ::selection {
+  background: rgba(255, 105, 180, 0.3);
+}
+
+.fox ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.fox ::-webkit-scrollbar-track {
+  background: #fff0f5;
+}
+
+.fox ::-webkit-scrollbar-thumb {
+  background: #ffb6c1;
+  border-radius: 4px;
+}
+
+.fox ::-webkit-scrollbar-thumb:hover {
+  background: #ff69b4;
 }
