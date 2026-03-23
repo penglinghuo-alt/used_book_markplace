@@ -80,6 +80,7 @@ async function handleSubmit() {
     }
     
     await userStore.updateProfile({
+      username: form.value.username.trim(),
       bio: form.value.bio.trim(),
       wechat_id: form.value.wechat_id.trim()
     })
@@ -141,10 +142,9 @@ async function handleSubmit() {
               v-model="form.username"
               type="text" 
               class="form-input"
-              disabled
-              placeholder="用户名"
+              placeholder="请输入新用户名"
             />
-            <span class="form-hint">用户名暂时无法修改</span>
+            <span class="form-hint">用户名长度 3-30 个字符，可包含字母、数字和下划线</span>
           </div>
 
           <div class="form-group">

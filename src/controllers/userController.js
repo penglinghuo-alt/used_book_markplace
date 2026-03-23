@@ -204,40 +204,53 @@ const getAllUsers = asyncHandler(async (req, res) => {
  * 
  * 请求体：
  * {
+ *   "username": "新的用户名",
  *   "bio": "新的个性签名",
  *   "wechat_id": "新的微信ID"
  * }
  */
 const updateProfile = asyncHandler(async (req, res) => {
-    const { bio, wechat_id } = req.body;
+    const { username, bio, wechat_id } = req.body;
     
-    const success = await User.update(req.user.id, {
-        bio,
-        wechat_id
-    });
-    
-    if (!success) {
+    if (!username && !bio && !wechat_id) {
         throw new AppError('没有要更新的内容', 400);
     }
     
-    const updatedUser = await User.findById(req.user.id);
-    
-    logger.info(`用户资料更新`, { userId: req.user.id });
-    
-    res.status(200).json({
-        success: true,
-        message: '资料更新成功',
-        data: {
-            user: {
-                id: updatedUser.id,
-                username: updatedUser.username,
-                bio: updatedUser.bio,
-                wechat_id: updatedUser.wechat_id,
-                avatar_url: updatedUser.avatar_url,
-                created_at: updatedUser.created_at
-            }
+    try {
+        const success = await User.update(req.user.id, {
+            username,
+            bio,
+            wechat_id
+        });
+        
+        if (!success) {
+            throw new AppError('没有要更新的内容', 400);
         }
-    });
+        
+        const updatedUser = await User.findById(req.user.id);
+        
+        logger.info(`用户资料更新`, { userId: req.user.id });
+        
+        res.status(200).json({
+            success: true,
+            message: '资料更新成功',
+            data: {
+                user: {
+                    id: updatedUser.id,
+                    username: updatedUser.username,
+                    bio: updatedUser.bio,
+                    wechat_id: updatedUser.wechat_id,
+                    avatar_url: updatedUser.avatar_url,
+                    created_at: updatedUser.created_at
+                }
+            }
+        });
+    } catch (error) {
+        if (error.message === '用户名已被使用') {
+            throw new AppError('用户名已被其他用户使用', 400);
+        }
+        throw error;
+    }
 });
 
 /**

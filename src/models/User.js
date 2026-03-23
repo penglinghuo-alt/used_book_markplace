@@ -113,11 +113,19 @@ class User {
      * @param {Object} updates - 要更新的字段
      * @returns {Promise<boolean>} 更新是否成功
      */
-    static async update(id, { bio, wechat_id, avatar_url }) {
+    static async update(id, { username, bio, wechat_id, avatar_url }) {
         try {
             const fields = [];
             const values = [];
             
+            if (username !== undefined) {
+                const existing = await this.findByUsername(username);
+                if (existing && existing.id !== id) {
+                    throw new Error('用户名已被使用');
+                }
+                fields.push('username = ?');
+                values.push(username);
+            }
             if (bio !== undefined) {
                 fields.push('bio = ?');
                 values.push(bio);
@@ -146,6 +154,9 @@ class User {
             
             return affectedRows > 0;
         } catch (error) {
+            if (error.message === '用户名已被使用') {
+                throw error;
+            }
             logger.error('更新用户信息失败', { error: error.message, userId: id });
             throw error;
         }
