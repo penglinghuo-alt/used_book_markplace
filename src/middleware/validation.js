@@ -50,15 +50,15 @@ const validate = (validations) => {
 
 /**
  * 用户名验证规则
- * - 用户名长度 3-30 字符
- * - 只能包含字母、数字、下划线
+ * - 用户名长度 2-30 个字符
+ * - 可包含中文、字母、数字、下划线
  */
 const usernameValidation = body('username')
     .trim()
-    .isLength({ min: 3, max: 30 })
-    .withMessage('用户名长度必须为 3-30 个字符')
-    .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('用户名只能包含字母、数字和下划线');
+    .isLength({ min: 2, max: 30 })
+    .withMessage('用户名长度必须为 2-30 个字符')
+    .matches(/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/)
+    .withMessage('用户名只能包含中文、字母、数字和下划线');
 
 /**
  * 密码验证规则
