@@ -25,6 +25,11 @@ location /api {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
 
+location /uploads {
+    alias /www/wwwroot/used-book-marketplace/uploads;
+    expires 30d;
+}
+
 location / {
     try_files $uri $uri/ /index.html;
 }

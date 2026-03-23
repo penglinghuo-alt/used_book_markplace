@@ -58,9 +58,10 @@ async function uploadAvatar() {
     
     const res = await userApi.uploadAvatar(formData)
     
-    await userStore.fetchProfile()
-    
     avatarFile.value = null
+    avatarPreview.value = ''
+    
+    await userStore.fetchProfile()
   } catch (error) {
     console.error('上传头像失败:', error)
     alert(error.response?.data?.message || '上传头像失败，请重试')
