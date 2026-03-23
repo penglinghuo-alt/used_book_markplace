@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { userApi } from '@/api'
 import { useUserStore } from '@/stores/user'
@@ -41,6 +41,10 @@ function formatDate(date) {
 
 onMounted(() => {
   fetchUser()
+})
+
+const isOwnProfile = computed(() => {
+  return userStore.user?.id === Number(route.params.id)
 })
 </script>
 
