@@ -153,3 +153,46 @@ img {
   opacity: 0;
   transform: translateY(20px);
 }
+
+.fox {
+  --primary: #e65c00;
+  --primary-light: #ff8533;
+  --primary-dark: #b34700;
+  --secondary: #ffcc00;
+  --secondary-light: #ffdb4d;
+  
+  --bg-primary: #fff9f0;
+  --bg-secondary: #fff5e6;
+  --bg-card: #ffffff;
+  --bg-hover: #ffe6cc;
+  
+  --text-primary: #4a2c00;
+  --text-secondary: #8b5a00;
+  --text-tertiary: #b38000;
+  
+  --border: #ffd9b3;
+  --border-light: #ffe6cc;
+  
+  --success: #2e8b57;
+  --warning: #e65c00;
+  --error: #dc3545;
+  --info: #e65c00;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(230 92 0 / 0.1);
+  --shadow: 0 1px 3px 0 rgb(230 92 0 / 0.15), 0 1px 2px -1px rgb(230 92 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(230 92 0 / 0.15), 0 2px 4px -2px rgb(230 92 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(230 92 0 / 0.15), 0 4px 6px -4px rgb(230 92 0 / 0.1);
+}
+
+.fox .page-header {
+  background: rgba(255, 249, 240, 0.8);
+}
+
+.fox .app-header {
+  background: rgba(255, 249, 240, 0.9);
+}
+
+.fox .app-tabbar {
+  background: rgba(255, 255, 255, 0.95);
+  border-top-color: var(--border);
+}

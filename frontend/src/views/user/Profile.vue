@@ -1,9 +1,9 @@
 <script setup>
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { userApi } from '@/api'
 import { transactionApi } from '@/api'
-import { ref } from 'vue'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 
@@ -18,6 +18,15 @@ const stats = ref({
 })
 
 const user = computed(() => userStore.user)
+
+const showPasswordModal = ref(false)
+const passwordForm = ref({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+const passwordLoading = ref(false)
+const passwordError = ref('')
 
 function formatDate(date) {
   return dayjs(date).format('YYYY-MM-DD')
@@ -36,6 +45,50 @@ function logout() {
   if (confirm('确定要退出登录吗？')) {
     userStore.logout()
     router.push('/login')
+  }
+}
+
+function openPasswordModal() {
+  passwordForm.value = {
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  }
+  passwordError.value = ''
+  showPasswordModal.value = true
+}
+
+async function handlePasswordChange() {
+  passwordError.value = ''
+  
+  if (!passwordForm.value.oldPassword) {
+    passwordError.value = '请输入原密码'
+    return
+  }
+  
+  if (passwordForm.value.newPassword.length < 6) {
+    passwordError.value = '新密码长度至少为6位'
+    return
+  }
+  
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    passwordError.value = '两次输入的新密码不一致'
+    return
+  }
+  
+  passwordLoading.value = true
+  
+  try {
+    await userApi.updatePassword({
+      oldPassword: passwordForm.value.oldPassword,
+      newPassword: passwordForm.value.newPassword
+    })
+    alert('密码修改成功！')
+    showPasswordModal.value = false
+  } catch (e) {
+    passwordError.value = e.message || '修改失败，请检查原密码是否正确'
+  } finally {
+    passwordLoading.value = false
   }
 }
 
@@ -91,6 +144,11 @@ onMounted(() => {
               <span class="menu-label">编辑资料</span>
               <span class="menu-arrow">›</span>
             </router-link>
+            <div class="menu-item" @click="openPasswordModal">
+              <span class="menu-icon">🔐</span>
+              <span class="menu-label">修改密码</span>
+              <span class="menu-arrow">›</span>
+            </div>
             <router-link to="/transactions" class="menu-item">
               <span class="menu-icon">📋</span>
               <span class="menu-label">交易记录</span>
@@ -128,6 +186,51 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+  <div v-if="showPasswordModal" class="modal-overlay" @click.self="showPasswordModal = false">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>修改密码</h3>
+        <button class="modal-close" @click="showPasswordModal = false">×</button>
+      </div>
+      <div class="modal-body">
+        <div v-if="passwordError" class="error-alert">{{ passwordError }}</div>
+        <div class="form-group">
+          <label class="form-label">原密码</label>
+          <input 
+            v-model="passwordForm.oldPassword"
+            type="password" 
+            class="form-input"
+            placeholder="请输入原密码"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">新密码</label>
+          <input 
+            v-model="passwordForm.newPassword"
+            type="password" 
+            class="form-input"
+            placeholder="请输入新密码（至少6位）"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">确认新密码</label>
+          <input 
+            v-model="passwordForm.confirmPassword"
+            type="password" 
+            class="form-input"
+            placeholder="请再次输入新密码"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" @click="showPasswordModal = false">取消</button>
+        <button class="submit-btn" @click="handlePasswordChange" :disabled="passwordLoading">
+          {{ passwordLoading ? '修改中...' : '确认修改' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -151,6 +254,10 @@ onMounted(() => {
 
 .dark .header-bg {
   background: linear-gradient(135deg, #1e1e3f 0%, #2d1b4e 100%);
+}
+
+.fox .header-bg {
+  background: linear-gradient(135deg, #e65c00 0%, #ffcc00 100%);
 }
 
 .profile-info {
@@ -380,5 +487,147 @@ onMounted(() => {
 .logout-btn:hover {
   background: var(--error);
   color: white;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--text-tertiary);
+  transition: all var(--transition);
+}
+
+.modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body .form-group {
+  margin-bottom: 16px;
+}
+
+.modal-body .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.modal-body .form-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.modal-body .form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all var(--transition);
+}
+
+.modal-body .form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-footer .cancel-btn,
+.modal-footer .submit-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all var(--transition);
+}
+
+.modal-footer .cancel-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.modal-footer .cancel-btn:hover {
+  background: var(--bg-hover);
+}
+
+.modal-footer .submit-btn {
+  background: var(--primary);
+  color: white;
+}
+
+.modal-footer .submit-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.modal-footer .submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error-alert {
+  padding: 12px;
+  background: #fee2e2;
+  border-radius: var(--radius);
+  color: #991b1b;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.dark .error-alert {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
 }
 </style>

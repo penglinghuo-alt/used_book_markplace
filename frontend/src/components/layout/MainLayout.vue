@@ -46,9 +46,14 @@ const isActive = (path) => route.path.startsWith(path)
         </nav>
 
         <div class="header-actions">
-          <button class="theme-toggle" @click="themeStore.toggleTheme">
+          <button class="theme-toggle" @click="themeStore.toggleDark">
             <span v-if="themeStore.isDark">☀️</span>
             <span v-else>🌙</span>
+          </button>
+          
+          <button class="theme-toggle fox-toggle" @click="themeStore.toggleFox">
+            <span v-if="themeStore.isFox" style="color: #e65c00;">🦊</span>
+            <span v-else>🦊</span>
           </button>
           
           <template v-if="userStore.isLoggedIn">
@@ -190,6 +195,10 @@ const isActive = (path) => route.path.startsWith(path)
 .theme-toggle:hover {
   background: var(--bg-hover);
   transform: rotate(15deg);
+}
+
+.fox-toggle {
+  margin-left: 4px;
 }
 
 .publish-btn {

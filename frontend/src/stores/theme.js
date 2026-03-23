@@ -1,22 +1,51 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 export const useThemeStore = defineStore('theme', () => {
-  const isDark = ref(localStorage.getItem('theme') === 'dark')
+  const themeName = ref(localStorage.getItem('themeName') || 'light')
+  
+  const isDark = computed(() => themeName.value === 'dark')
+  const isFox = computed(() => themeName.value === 'fox')
 
-  function toggleTheme() {
-    isDark.value = !isDark.value
-    localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-    document.documentElement.classList.toggle('dark', isDark.value)
+  function setTheme(name) {
+    themeName.value = name
+    localStorage.setItem('themeName', name)
+    
+    document.documentElement.classList.remove('dark', 'fox')
+    if (name !== 'light') {
+      document.documentElement.classList.add(name)
+    }
+  }
+
+  function toggleDark() {
+    if (themeName.value === 'dark') {
+      setTheme('light')
+    } else {
+      setTheme('dark')
+    }
+  }
+
+  function toggleFox() {
+    if (themeName.value === 'fox') {
+      setTheme('light')
+    } else {
+      setTheme('fox')
+    }
   }
 
   function initTheme() {
-    document.documentElement.classList.toggle('dark', isDark.value)
+    if (themeName.value !== 'light') {
+      document.documentElement.classList.add(themeName.value)
+    }
   }
 
   return {
+    themeName,
     isDark,
-    toggleTheme,
+    isFox,
+    setTheme,
+    toggleDark,
+    toggleFox,
     initTheme
   }
 })
