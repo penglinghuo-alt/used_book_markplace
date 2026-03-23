@@ -53,7 +53,8 @@ onMounted(() => {
       <div class="header-bg"></div>
       <div class="profile-info">
         <div class="avatar-large">
-          {{ user?.username?.charAt(0).toUpperCase() || '?' }}
+          <img v-if="user?.avatar_url" :src="user.avatar_url" alt="头像" class="avatar-img" />
+          <span v-else>{{ user?.username?.charAt(0).toUpperCase() || '?' }}</span>
         </div>
         <h1 class="username">{{ user?.username || '加载中...' }}</h1>
         <p class="bio" v-if="user?.bio">{{ user.bio }}</p>
@@ -174,6 +175,13 @@ onMounted(() => {
   font-weight: 700;
   box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
   border: 4px solid var(--bg-card);
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .username {

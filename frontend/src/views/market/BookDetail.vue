@@ -169,7 +169,8 @@ onMounted(() => {
               </h3>
               <div class="seller-info clickable" v-if="seller" @click="viewSellerProfile">
                 <div class="seller-avatar">
-                  {{ seller.username?.charAt(0).toUpperCase() }}
+                  <img v-if="seller.avatar_url" :src="seller.avatar_url" alt="头像" />
+                  <span v-else>{{ seller.username?.charAt(0).toUpperCase() }}</span>
                 </div>
                 <div class="seller-details">
                   <p class="seller-name">{{ seller.username }}</p>
@@ -447,6 +448,13 @@ onMounted(() => {
   justify-content: center;
   font-size: 1.5rem;
   font-weight: 700;
+  overflow: hidden;
+}
+
+.seller-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .seller-details {
