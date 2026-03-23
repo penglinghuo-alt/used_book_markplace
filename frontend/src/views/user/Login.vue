@@ -26,8 +26,8 @@ const error = ref('')
 async function fetchCaptcha() {
   try {
     const res = await userApi.getCaptcha()
-    captcha.value = res.data
-    form.value.captchaToken = res.data.token
+    captcha.value = { token: res.token, data: res.captcha }
+    form.value.captchaToken = res.token
   } catch (e) {
     console.error('获取验证码失败', e)
   }
