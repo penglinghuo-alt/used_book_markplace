@@ -24,19 +24,20 @@ const logger = require('../config/logger');
  *   "title": "书名",
  *   "author": "作者",
  *   "price": 29.99,
- *   "description": "新旧程度描述"
+ *   "description": "新旧程度描述",
+ *   "image_url": "图片URL"
  * }
  */
 const createBook = asyncHandler(async (req, res) => {
-    const { title, author, price, description } = req.body;
+    const { title, author, price, description, image_url } = req.body;
     
-    // 创建书籍
     const book = await Book.create({
-        seller_id: req.user.id,  // 从认证中间件获取卖家ID
+        seller_id: req.user.id,
         title,
         author,
         price,
-        description
+        description,
+        image_url: image_url || null
     });
     
     logger.info(`书籍发布成功`, { bookId: book.id, sellerId: req.user.id });

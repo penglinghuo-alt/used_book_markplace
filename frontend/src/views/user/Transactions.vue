@@ -30,7 +30,7 @@ async function fetchTransactions() {
   loading.value = true
   try {
     const res = await transactionApi.getMyTransactions()
-    transactions.value = res.transactions || res || []
+    transactions.value = res.data?.transactions || res.transactions || []
   } catch (error) {
     console.error('获取交易记录失败:', error)
   } finally {

@@ -153,7 +153,8 @@ onMounted(() => {
               @click="goToDetail(book)"
             >
               <div class="book-cover">
-                <div class="book-placeholder">
+                <img v-if="book.image_url" :src="book.image_url" :alt="book.title" class="book-image" />
+                <div v-else class="book-placeholder">
                   <span class="book-emoji">📖</span>
                 </div>
                 <div class="book-price">¥{{ formatPrice(book.price) }}</div>
@@ -440,6 +441,12 @@ onMounted(() => {
 
 .book-emoji {
   font-size: 50px;
+}
+
+.book-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .book-price {

@@ -162,8 +162,8 @@ img {
   --secondary-light: #ffc0cb;
   
   --bg-primary: #fff0f5;
-  --bg-secondary: #fff5f7;
-  --bg-card: #ffffff;
+  --bg-secondary: #ffe4ec;
+  --bg-card: rgba(255, 255, 255, 0.95);
   --bg-hover: #ffe4e9;
   
   --text-primary: #4a2040;
@@ -184,52 +184,60 @@ img {
   --shadow-lg: 0 10px 15px -3px rgb(255 105 180 / 0.12), 0 4px 6px -4px rgb(255 105 180 / 0.08);
 }
 
-.fox .page-header {
-  background: rgba(255, 240, 245, 0.92);
+body.fox {
+  background: linear-gradient(180deg, #ffe4ec 0%, #fff0f5 30%, #ffe4e9 60%, #ffd6e0 100%);
 }
 
-.fox .app-header {
-  background: rgba(255, 250, 253, 0.95);
+body.fox .page-header {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
 }
 
-.fox .app-tabbar {
-  background: rgba(255, 255, 255, 0.98);
+body.fox .app-header {
+  background: rgba(255, 250, 253, 0.92);
+  backdrop-filter: blur(10px);
+}
+
+body.fox .app-tabbar {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
   border-top-color: var(--border);
 }
 
-.fox .header-bg {
+body.fox .header-bg {
   background: linear-gradient(135deg, #ff69b4 0%, #ffc0cb 50%, #ffb6c1 100%);
 }
 
-.fox .profile-header {
-  background: linear-gradient(180deg, rgba(255,182,193,0.3) 0%, transparent 100%);
+body.fox .profile-header {
+  background: linear-gradient(180deg, rgba(255,182,193,0.4) 0%, transparent 100%);
 }
 
-.fox .stat-card {
-  background: linear-gradient(135deg, #fff5f7 0%, #ffe4e9 100%);
+body.fox .stat-card {
+  background: linear-gradient(135deg, rgba(255,245,247,0.9) 0%, rgba(255,228,233,0.9) 100%);
+  backdrop-filter: blur(5px);
 }
 
-.fox .menu-item:hover {
-  background: var(--bg-hover);
+body.fox .menu-item:hover {
+  background: rgba(255, 105, 180, 0.1);
 }
 
-.fox ::selection {
+body.fox ::selection {
   background: rgba(255, 105, 180, 0.3);
 }
 
-.fox ::-webkit-scrollbar {
+body.fox ::-webkit-scrollbar {
   width: 8px;
 }
 
-.fox ::-webkit-scrollbar-track {
-  background: #fff0f5;
+body.fox ::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, #fff0f5 0%, #ffe4ec 100%);
 }
 
-.fox ::-webkit-scrollbar-thumb {
-  background: #ffb6c1;
+body.fox ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ffb6c1 0%, #ff69b4 100%);
   border-radius: 4px;
 }
 
-.fox ::-webkit-scrollbar-thumb:hover {
-  background: #ff69b4;
+body.fox ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff69b4 0%, #ff1493 100%);
 }

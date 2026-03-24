@@ -9,11 +9,50 @@ const form = ref({
   title: '',
   author: '',
   price: '',
-  description: ''
+  description: '',
+  imageUrl: ''
 })
 
+const imageFile = ref(null)
+const imagePreview = ref('')
+const uploadingImage = ref(false)
 const loading = ref(false)
 const errors = ref({})
+
+function handleImageChange(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  
+  if (file.size > 5 * 1024 * 1024) {
+    alert('图片大小不能超过 5MB')
+    return
+  }
+  
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    alert('只支持 JPG、PNG、GIF、WebP 格式的图片')
+    return
+  }
+  
+  imageFile.value = file
+  imagePreview.value = URL.createObjectURL(file)
+}
+
+async function uploadImage() {
+  if (!imageFile.value) return null
+  
+  uploadingImage.value = true
+  try {
+    const res = await bookApi.uploadBookImage(imageFile.value)
+    return res.image_url
+  } catch (e) {
+    console.error('图片上传失败:', e)
+    alert('图片上传失败，请重试')
+    return null
+  } finally {
+    uploadingImage.value = false
+  }
+}
 
 function validate() {
   errors.value = {}
@@ -38,11 +77,23 @@ async function handleSubmit() {
   
   loading.value = true
   try {
+    let imageUrl = form.value.imageUrl
+    
+    if (imageFile.value) {
+      const uploaded = await uploadImage()
+      if (!uploaded && imageFile.value) {
+        loading.value = false
+        return
+      }
+      imageUrl = uploaded
+    }
+    
     await bookApi.createBook({
       title: form.value.title.trim(),
       author: form.value.author.trim(),
       price: Number(form.value.price),
-      description: form.value.description.trim()
+      description: form.value.description.trim(),
+      image_url: imageUrl || null
     })
     alert('发布成功！')
     router.push('/seller')
@@ -129,6 +180,30 @@ async function handleSubmit() {
                 />
               </div>
               <span v-if="errors.price" class="error-text">{{ errors.price }}</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-icon">📷</span>
+                书籍图片
+              </label>
+              <div class="image-upload-area">
+                <div v-if="imagePreview" class="image-preview">
+                  <img :src="imagePreview" alt="书籍图片预览" />
+                  <button type="button" class="remove-image" @click="imageFile = null; imagePreview = ''">×</button>
+                </div>
+                <label v-else class="upload-placeholder">
+                  <input 
+                    type="file" 
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    @change="handleImageChange"
+                    hidden
+                  />
+                  <div class="upload-icon">📷</div>
+                  <div class="upload-text">点击上传书籍图片</div>
+                  <div class="upload-hint">支持 JPG、PNG、GIF、WebP 格式，最大 5MB</div>
+                </label>
+              </div>
             </div>
 
             <div class="form-group">
@@ -393,6 +468,80 @@ async function handleSubmit() {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.image-upload-area {
+  width: 100%;
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.remove-image:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  background: var(--bg-secondary);
+}
+
+.upload-placeholder:hover {
+  border-color: var(--primary);
+  background: var(--bg-hover);
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.upload-text {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.upload-hint {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
 }
 
 @media (max-width: 768px) {

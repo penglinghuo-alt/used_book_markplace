@@ -126,6 +126,7 @@ async function initializeDatabase() {
             author VARCHAR(100) NOT NULL COMMENT '作者',
             price DECIMAL(10, 2) NOT NULL COMMENT '价格',
             description TEXT COMMENT '描述/新旧程度',
+            image_url VARCHAR(500) DEFAULT NULL COMMENT '书籍图片URL',
             status ENUM('active', 'sold') DEFAULT 'active' COMMENT '状态: active=挂售中, sold=已售出',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '挂售时间',
             INDEX idx_seller_id (seller_id),
@@ -193,6 +194,15 @@ async function initializeDatabase() {
         
         await query(createBookTable);
         console.log('✅ books 表创建成功');
+        
+        try {
+            await query("ALTER TABLE books ADD COLUMN image_url VARCHAR(500) DEFAULT NULL COMMENT '书籍图片URL' AFTER description");
+            console.log('✅ books 表 image_url 列添加成功');
+        } catch (e) {
+            if (e.code !== 'ER_DUP_FIELDNAME') {
+                console.log('ℹ️ image_url 列已存在或无需添加');
+            }
+        }
         
         await query(createMessageTable);
         console.log('✅ messages 表创建成功');

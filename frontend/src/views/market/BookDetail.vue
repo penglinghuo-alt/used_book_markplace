@@ -121,7 +121,8 @@ onMounted(() => {
         <div class="hero-content">
           <div class="book-visual">
             <div class="book-cover-large">
-              <span class="book-emoji">📖</span>
+              <img v-if="book.image_url" :src="book.image_url" :alt="book.title" class="book-image-large" />
+              <span v-else class="book-emoji">📖</span>
             </div>
             <div class="book-price-tag">
               <span class="currency">¥</span>
@@ -300,6 +301,13 @@ onMounted(() => {
 
 .book-emoji {
   font-size: 80px;
+}
+
+.book-image-large {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .book-price-tag {

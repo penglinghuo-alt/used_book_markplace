@@ -24,15 +24,16 @@ class Book {
      * @param {string} bookData.author - 作者
      * @param {number} bookData.price - 价格
      * @param {string} [bookData.description] - 描述/新旧程度
+     * @param {string} [bookData.image_url] - 书籍图片URL
      * @returns {Promise<Object>} 创建的书籍对象
      */
-    static async create({ seller_id, title, author, price, description = '' }) {
+    static async create({ seller_id, title, author, price, description = '', image_url = null }) {
         try {
             const sql = `
-                INSERT INTO books (seller_id, title, author, price, description, status)
-                VALUES (?, ?, ?, ?, ?, 'active')
+                INSERT INTO books (seller_id, title, author, price, description, image_url, status)
+                VALUES (?, ?, ?, ?, ?, ?, 'active')
             `;
-            const bookId = await db.insert(sql, [seller_id, title, author, price, description]);
+            const bookId = await db.insert(sql, [seller_id, title, author, price, description, image_url]);
             
             logger.info(`新书籍挂售成功`, { bookId, title, seller_id });
             
@@ -43,6 +44,7 @@ class Book {
                 author,
                 price,
                 description,
+                image_url,
                 status: 'active',
                 created_at: new Date()
             };

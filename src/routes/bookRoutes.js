@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const bookController = require('../controllers/bookController');
 const { auth } = require('../middleware/auth');
+const { uploadBookImage } = require('../middleware/upload');
 const {
     validate,
     createBookValidation,
@@ -27,6 +28,35 @@ router.post(
     auth,
     validate(createBookValidation),
     bookController.createBook
+);
+
+/**
+ * @route   POST /api/books/upload-image
+ * @desc    上传书籍图片
+ * @access  需要认证
+ */
+router.post(
+    '/upload-image',
+    auth,
+    uploadBookImage.single('image'),
+    async (req, res) => {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: '请选择要上传的图片'
+            });
+        }
+        
+        const imageUrl = `/uploads/books/${req.file.filename}`;
+        
+        res.json({
+            success: true,
+            message: '图片上传成功',
+            data: {
+                image_url: imageUrl
+            }
+        });
+    }
 );
 
 /**

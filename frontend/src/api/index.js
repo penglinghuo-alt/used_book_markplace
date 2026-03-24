@@ -71,6 +71,13 @@ export const bookApi = {
   createBook(data) {
     return api.post('/books', data)
   },
+  uploadBookImage(file) {
+    const formData = new FormData()
+    formData.append('image', file)
+    return api.post('/books/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
   updateBook(id, data) {
     return api.put(`/books/${id}`, data)
   },
