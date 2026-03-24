@@ -31,23 +31,51 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 
 ## 条目
 
-[明天新任务：继续部署二手书项目]
+### 2026-03-25 待继续功能
+
+[二手书项目当前进度和待完成功能]
+- Date: 2026-03-25
+- Context: 用户睡觉前记录待完成功能
+- 待完成功能：
+  1. **消息功能完善** - 聊天功能完整流程测试
+  2. **好友功能** - 好友功能基本完成，需测试
+  3. **书籍分类** - 分类功能已添加，教辅/课本/笔记本/其他
+  4. **实时统计** - 首页显示注册用户数和书籍数
+  5. **安全性测试** - 限流、CSP等安全措施已添加
+  6. **验证码机器人测试** - 图形验证码功能已实现
+  7. **其他可能的需求** - 用户睡觉前提到还有功能要修改
+
+- 已完成功能：
+  - 用户注册/登录（中文用户名、图形验证码）
+  - 头像上传
+  - 修改用户名、密码、个人资料
+  - 手机号绑定/找回密码
+  - 聊天功能（需成为好友后才能聊天）
+  - 好友功能（申请、同意/拒绝、好友列表）
+  - 书籍发布/购买
+  - 书籍分类（教辅/课本/笔记本/其他）
+  - 狐妖小红娘主题（粉色樱花、樱花飘落特效）
+  - 夜间模式
+  - 网站安全措施（限流、CSP、安全Headers）
+
+- 部署命令：
+  ```bash
+  # 后端
+  cd /www/wwwroot/used-book-marketplace && git pull && pkill -f "node src/app.js" || true && source ~/.bashrc && nvm use 20 && node src/app.js &
+
+  # 前端
+  cd /www/wwwroot/used-book-marketplace/frontend && git pull && source ~/.bashrc && nvm use 20 && npm run build && nginx -s reload
+  ```
+
+- 项目路径：
+  - 后端：/www/wwwroot/used-book-marketplace
+  - 前端：/www/wwwroot/used-book-marketplace/frontend
+  - 仓库：https://github.com/penglinghuo-alt/used_book_markplace.git
+
+### 2026-03-24 首次任务
+
+[二手书项目部署]
 - Date: 2026-03-24
-- Context: 用户明确要求明天直接告诉新的任务
+- Context: 用户要求继续部署二手书项目
 - Instructions:
   - 继续部署二手书项目，执行下面的部署步骤并验证功能
-  - 后端部署命令：
-    cd /www/wwwroot/used-book-marketplace && git pull && npm install && pkill -f "node src/app.js" || true && source ~/.bashrc && nvm use 20 && node src/app.js &
-  - 前端部署命令：
-    cd /www/wwwroot/used-book-marketplace/frontend && git pull && source ~/.bashrc && nvm use 20 && npm run build && nginx -s reload
-  - 已实现功能：
-    - 用户注册/登录（中文用户名、图形验证码）
-    - 头像上传
-    - 修改用户名、密码、个人资料
-    - 聊天功能
-    - 书籍发布/购买
-    - 狐妖小红娘主题（粉色樱花）
-    - 夜间模式
-  - 待完善：
-    - 验证码机器人测试（已添加功能）
-    - 聊天功能完整流程测试
