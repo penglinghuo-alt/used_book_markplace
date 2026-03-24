@@ -56,6 +56,17 @@ router.get(
 );
 
 /**
+ * @route   GET /api/messages/unread-count
+ * @desc    获取当前用户未读消息总数
+ * @access  需要认证
+ */
+router.get(
+    '/unread-count',
+    auth,
+    messageController.getUnreadCount
+);
+
+/**
  * @route   GET /api/messages/book/:bookId
  * @desc    获取与某本书相关的所有聊天记录
  * @access  需要认证
@@ -76,17 +87,6 @@ router.get(
     auth,
     validate(idParamValidation),
     messageController.getMessageById
-);
-
-/**
- * @route   GET /api/messages/unread-count
- * @desc    获取当前用户未读消息总数
- * @access  需要认证
- */
-router.get(
-    '/unread-count',
-    auth,
-    messageController.getUnreadCount
 );
 
 /**
