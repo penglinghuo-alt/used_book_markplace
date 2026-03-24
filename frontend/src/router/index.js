@@ -77,6 +77,12 @@ const routes = [
     name: 'Transactions',
     component: () => import('@/views/user/Transactions.vue'),
     meta: { title: '交易记录', requiresAuth: true }
+  },
+  {
+    path: '/friends',
+    name: 'Friends',
+    component: () => import('@/views/friends/Friends.vue'),
+    meta: { title: '好友', requiresAuth: true }
   }
 ]
 

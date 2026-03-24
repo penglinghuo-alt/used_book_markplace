@@ -130,3 +130,30 @@ export const transactionApi = {
     return api.get(`/transactions/book/${bookId}`)
   }
 }
+
+export const friendshipApi = {
+  sendRequest(friendId, message = '') {
+    return api.post('/friendships', { friend_id: friendId, message })
+  },
+  getFriends() {
+    return api.get('/friendships')
+  },
+  getPendingRequests() {
+    return api.get('/friendships/requests')
+  },
+  getPendingCount() {
+    return api.get('/friendships/requests/count')
+  },
+  acceptRequest(friendId) {
+    return api.post(`/friendships/${friendId}/accept`)
+  },
+  rejectRequest(friendId) {
+    return api.post(`/friendships/${friendId}/reject`)
+  },
+  checkStatus(friendId) {
+    return api.get(`/friendships/${friendId}/status`)
+  },
+  deleteFriend(friendId) {
+    return api.delete(`/friendships/${friendId}`)
+  }
+}

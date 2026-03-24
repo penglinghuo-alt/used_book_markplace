@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { userApi } from '@/api'
+import { userApi, friendshipApi } from '@/api'
 import { useUserStore } from '@/stores/user'
+import { useFriendshipStore } from '@/stores/friendship'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 
@@ -11,14 +12,20 @@ dayjs.locale('zh-cn')
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const friendshipStore = useFriendshipStore()
 
 const user = ref(null)
 const loading = ref(true)
+const friendStatus = ref('none')
+const showRequestModal = ref(false)
+const requestMessage = ref('')
+const submitting = ref(false)
 
 async function fetchUser() {
   try {
     const res = await userApi.getUserById(route.params.id)
     user.value = res.user || res
+    await checkFriendStatus()
   } catch (error) {
     console.error('获取用户信息失败:', error)
     router.back()
@@ -27,9 +34,41 @@ async function fetchUser() {
   }
 }
 
+async function checkFriendStatus() {
+  try {
+    const res = await friendshipApi.checkStatus(route.params.id)
+    friendStatus.value = res.status
+  } catch (e) {
+    console.error('检查好友状态失败', e)
+  }
+}
+
+function openRequestModal() {
+  requestMessage.value = ''
+  showRequestModal.value = true
+}
+
+async function sendFriendRequest() {
+  submitting.value = true
+  try {
+    await friendshipStore.sendRequest(route.params.id, requestMessage.value)
+    await checkFriendStatus()
+    showRequestModal.value = false
+    alert('好友申请已发送')
+  } catch (e) {
+    alert(e.message || '发送失败')
+  } finally {
+    submitting.value = false
+  }
+}
+
 function startChat() {
   if (!userStore.isLoggedIn) {
     router.push({ name: 'Login', query: { redirect: route.fullPath } })
+    return
+  }
+  if (friendStatus.value !== 'friends') {
+    alert('请先添加好友')
     return
   }
   router.push(`/messages/chat/${route.params.id}`)
@@ -98,24 +137,68 @@ const isOwnProfile = computed(() => {
       </div>
 
       <div class="action-section" v-if="!isOwnProfile">
-        <button class="action-btn primary" @click="startChat">
+        <button 
+          v-if="friendStatus === 'friends'" 
+          class="action-btn primary" 
+          @click="startChat"
+        >
           <span>💬</span>
-          <span>发起聊天</span>
+          <span>发消息</span>
         </button>
+        <button 
+          v-else-if="friendStatus === 'none'" 
+          class="action-btn add-friend" 
+          @click="openRequestModal"
+        >
+          <span>➕</span>
+          <span>添加好友</span>
+        </button>
+        <button 
+          v-else-if="friendStatus === 'sent'" 
+          class="action-btn disabled" 
+          disabled
+        >
+          <span>⏳</span>
+          <span>等待对方同意</span>
+        </button>
+        <button 
+          v-else-if="friendStatus === 'received'" 
+          class="action-btn primary" 
+          @click="openRequestModal"
+        >
+          <span>📩</span>
+          <span>回复好友申请</span>
+        </button>
+        <span v-else-if="friendStatus === 'rejected'" class="rejected-hint">已拒绝此申请</span>
+      </div>
+
+      <div v-if="showRequestModal" class="modal-overlay" @click.self="showRequestModal = false">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>添加好友</h3>
+            <button @click="showRequestModal = false">×</button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-hint">向 {{ user?.username }} 发送好友申请</p>
+            <textarea 
+              v-model="requestMessage"
+              class="form-textarea"
+              placeholder="介绍一下自己，表明来意..."
+              rows="3"
+            ></textarea>
+            <button 
+              class="submit-btn" 
+              @click="sendFriendRequest"
+              :disabled="submitting"
+            >
+              {{ submitting ? '发送中...' : '发送申请' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  computed: {
-    isOwnProfile() {
-      return userStore.user?.id === Number(route.params.id)
-    }
-  }
-}
-</script>
 
 <style scoped>
 .user-profile-page {
@@ -297,5 +380,111 @@ export default {
 .action-btn.primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+
+.action-btn.add-friend {
+  background: linear-gradient(135deg, #10b981), #059669));
+  color: white;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.action-btn.add-friend:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.action-btn.disabled {
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+.rejected-hint {
+  display: block;
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: 16px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.modal-header button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: var(--text-tertiary);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-hint {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  resize: vertical;
+  margin-bottom: 16px;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
 }
 </style>

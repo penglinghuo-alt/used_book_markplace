@@ -4,12 +4,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
 import { useMessageStore } from '@/stores/message'
+import { useFriendshipStore } from '@/stores/friendship'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const themeStore = useThemeStore()
 const messageStore = useMessageStore()
+const friendshipStore = useFriendshipStore()
 
 const showNav = computed(() => {
   return route.meta.requiresAuth !== undefined || route.name === 'Market'
@@ -18,6 +20,7 @@ const showNav = computed(() => {
 const navItems = [
   { path: '/market', name: 'market', icon: '📚', label: '市场' },
   { path: '/seller', name: 'seller', icon: '📖', label: '书架' },
+  { path: '/friends', name: 'friends', icon: '👥', label: '好友' },
   { path: '/messages', name: 'messages', icon: '💬', label: '消息' },
   { path: '/profile', name: 'profile', icon: '👤', label: '我的' }
 ]
@@ -27,6 +30,7 @@ const isActive = (path) => route.path.startsWith(path)
 onMounted(() => {
   if (userStore.isLoggedIn) {
     messageStore.fetchUnreadCount()
+    friendshipStore.fetchPendingCount()
     setInterval(() => {
       messageStore.fetchUnreadCount()
     }, 30000)
@@ -96,6 +100,7 @@ onMounted(() => {
         <span class="tab-icon">
           {{ item.icon }}
           <span v-if="item.name === 'messages' && messageStore.unreadCount > 0" class="unread-dot"></span>
+          <span v-if="item.name === 'friends' && friendshipStore.pendingCount > 0" class="unread-dot"></span>
         </span>
         <span class="tab-label">{{ item.label }}</span>
       </router-link>
