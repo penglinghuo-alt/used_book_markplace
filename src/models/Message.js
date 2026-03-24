@@ -246,7 +246,6 @@ class Message {
             throw error;
         }
     }
-}
 
     /**
      * 标记与某用户的所有消息为已读
