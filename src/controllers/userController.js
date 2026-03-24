@@ -30,7 +30,7 @@ const logger = require('../config/logger');
  * }
  */
 const register = asyncHandler(async (req, res) => {
-    const { username, password, bio, wechat_id, phone, smsCode, captchaToken, captchaInput } = req.body;
+    const { username, password, bio, wechat_id, phone, captchaToken, captchaInput } = req.body;
     
     if (!captchaToken || !captchaInput) {
         throw new AppError('请输入验证码', 400);
@@ -49,15 +49,6 @@ const register = asyncHandler(async (req, res) => {
         const phoneRegex = /^1[3-9]\d{9}$/;
         if (!phoneRegex.test(phone)) {
             throw new AppError('手机号格式不正确', 400);
-        }
-        
-        if (!smsCode) {
-            throw new AppError('请输入短信验证码', 400);
-        }
-        
-        const { verifySmsCode } = require('../utils/sms');
-        if (!verifySmsCode(phone, smsCode)) {
-            throw new AppError('短信验证码错误', 400);
         }
         
         const existingPhoneUser = await User.findByPhone(phone);

@@ -102,13 +102,13 @@ router.post('/verify-sms', (req, res) => {
 
 /**
  * @route   POST /api/users/reset-password
- * @desc    通过短信验证码重置密码
+ * @desc    通过手机号重置密码
  * @access  公开
  */
 router.post('/reset-password', async (req, res) => {
-    const { phone, code, newPassword } = req.body;
+    const { phone, newPassword } = req.body;
     
-    if (!phone || !code || !newPassword) {
+    if (!phone || !newPassword) {
         return res.status(400).json({
             success: false,
             message: '请填写完整信息'
@@ -119,13 +119,6 @@ router.post('/reset-password', async (req, res) => {
         return res.status(400).json({
             success: false,
             message: '密码长度至少为6位'
-        });
-    }
-    
-    if (!verifySmsCode(phone, code)) {
-        return res.status(400).json({
-            success: false,
-            message: '验证码错误'
         });
     }
     
@@ -246,7 +239,7 @@ router.post(
     '/me/phone',
     auth,
     async (req, res) => {
-        const { phone, smsCode } = req.body;
+        const { phone } = req.body;
         
         if (!phone) {
             return res.status(400).json({
@@ -260,21 +253,6 @@ router.post(
             return res.status(400).json({
                 success: false,
                 message: '手机号格式不正确'
-            });
-        }
-        
-        if (!smsCode) {
-            return res.status(400).json({
-                success: false,
-                message: '请输入短信验证码'
-            });
-        }
-        
-        const { verifySmsCode } = require('../utils/sms');
-        if (!verifySmsCode(phone, smsCode)) {
-            return res.status(400).json({
-                success: false,
-                message: '验证码错误'
             });
         }
         

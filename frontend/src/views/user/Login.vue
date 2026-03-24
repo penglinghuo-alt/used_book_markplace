@@ -16,14 +16,10 @@ const form = ref({
 })
 
 const showForgotModal = ref(false)
-const forgotStep = ref(1)
 const forgotPhone = ref('')
-const forgotCode = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
 const foundUsername = ref('')
-const smsCountdown = ref(0)
-const smsSending = ref(false)
 const resetting = ref(false)
 const forgotError = ref('')
 
@@ -102,9 +98,7 @@ function handleDemoLogin() {
 
 function openForgotModal() {
   showForgotModal.value = true
-  forgotStep.value = 1
   forgotPhone.value = ''
-  forgotCode.value = ''
   newPassword.value = ''
   confirmPassword.value = ''
   foundUsername.value = ''
@@ -133,7 +127,6 @@ async function checkPhone() {
     const res = await userApi.findByPhone(forgotPhone.value)
     if (res.data.bound) {
       foundUsername.value = res.data.username
-      forgotStep.value = 2
     } else {
       forgotError.value = '该手机号未注册'
     }
@@ -142,33 +135,8 @@ async function checkPhone() {
   }
 }
 
-async function sendResetCode() {
-  forgotError.value = ''
-  smsSending.value = true
-  
-  try {
-    await userApi.sendSms(forgotPhone.value)
-    smsCountdown.value = 60
-    const timer = setInterval(() => {
-      smsCountdown.value--
-      if (smsCountdown.value <= 0) {
-        clearInterval(timer)
-      }
-    }, 1000)
-  } catch (e) {
-    forgotError.value = e.message || '发送验证码失败'
-  } finally {
-    smsSending.value = false
-  }
-}
-
 async function resetPassword() {
   forgotError.value = ''
-  
-  if (!forgotCode.value) {
-    forgotError.value = '请输入验证码'
-    return
-  }
   
   if (!newPassword.value) {
     forgotError.value = '请输入新密码'
@@ -188,7 +156,7 @@ async function resetPassword() {
   resetting.value = true
   
   try {
-    await userApi.resetPassword(forgotPhone.value, forgotCode.value, newPassword.value)
+    await userApi.resetPassword(forgotPhone.value, newPassword.value)
     alert('密码重置成功，请使用新密码登录')
     closeForgotModal()
     fetchCaptcha()
@@ -284,42 +252,24 @@ async function resetPassword() {
       </div>
       <div class="modal-body">
         <div v-if="forgotError" class="error-alert">{{ forgotError }}</div>
-
-        <div v-if="forgotStep === 1" class="step-content">
-          <p class="step-hint">请输入您绑定的手机号</p>
-          <div class="form-group">
-            <input 
-              v-model="forgotPhone"
-              type="tel" 
-              class="form-input"
-              placeholder="请输入手机号"
-              maxlength="11"
-            />
-          </div>
-          <button class="submit-btn full-width" @click="checkPhone">下一步</button>
+        <div v-if="foundUsername" class="username-hint">
+          找到账户：{{ foundUsername }}
         </div>
 
-        <div v-if="forgotStep === 2" class="step-content">
-          <p class="step-hint">验证手机号：{{ forgotPhone }}</p>
-          <p class="username-hint">您的账户名：{{ foundUsername }}</p>
-          <div class="form-group">
-            <div class="sms-row">
-              <input 
-                v-model="forgotCode"
-                type="text" 
-                class="form-input"
-                placeholder="请输入验证码"
-                maxlength="6"
-              />
-              <button 
-                class="sms-btn" 
-                @click="sendResetCode"
-                :disabled="smsCountdown > 0 || smsSending"
-              >
-                {{ smsCountdown > 0 ? `${smsCountdown}s` : (smsSending ? '发送中...' : '获取验证码') }}
-              </button>
-            </div>
-          </div>
+        <div class="form-group">
+          <input 
+            v-model="forgotPhone"
+            type="tel" 
+            class="form-input"
+            placeholder="请输入绑定的手机号"
+            maxlength="11"
+            :disabled="foundUsername"
+          />
+        </div>
+
+        <button v-if="!foundUsername" class="submit-btn full-width" @click="checkPhone">查找账户</button>
+
+        <template v-if="foundUsername">
           <div class="form-group">
             <input 
               v-model="newPassword"
@@ -339,7 +289,7 @@ async function resetPassword() {
           <button class="submit-btn full-width" @click="resetPassword" :disabled="resetting">
             {{ resetting ? '重置中...' : '重置密码' }}
           </button>
-        </div>
+        </template>
       </div>
     </div>
   </div>

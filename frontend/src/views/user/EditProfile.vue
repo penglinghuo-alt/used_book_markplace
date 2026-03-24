@@ -14,11 +14,6 @@ const form = ref({
   phone: ''
 })
 
-const phoneCode = ref('')
-const smsSending = ref(false)
-const smsCountdown = ref(0)
-const bindingPhone = ref(false)
-
 const avatarFile = ref(null)
 const avatarPreview = ref('')
 const loading = ref(false)
@@ -77,9 +72,9 @@ async function uploadAvatar() {
   }
 }
 
-async function sendPhoneCode() {
+async function handleBindPhone() {
   if (!form.value.phone) {
-    alert('请先输入手机号')
+    alert('请输入手机号')
     return
   }
   
@@ -89,39 +84,12 @@ async function sendPhoneCode() {
     return
   }
   
-  smsSending.value = true
   try {
-    await userApi.sendSms(form.value.phone)
-    smsCountdown.value = 60
-    const timer = setInterval(() => {
-      smsCountdown.value--
-      if (smsCountdown.value <= 0) {
-        clearInterval(timer)
-      }
-    }, 1000)
-  } catch (e) {
-    alert(e.message || '发送验证码失败')
-  } finally {
-    smsSending.value = false
-  }
-}
-
-async function handleBindPhone() {
-  if (!phoneCode.value) {
-    alert('请输入验证码')
-    return
-  }
-  
-  bindingPhone.value = true
-  try {
-    await userApi.bindPhone(form.value.phone, phoneCode.value)
+    await userApi.bindPhone(form.value.phone)
     await userStore.fetchProfile()
     alert('手机号绑定成功')
-    phoneCode.value = ''
   } catch (e) {
     alert(e.message || '绑定失败')
-  } finally {
-    bindingPhone.value = false
   }
 }
 
@@ -139,6 +107,11 @@ async function handleSubmit() {
       bio: form.value.bio.trim(),
       wechat_id: form.value.wechat_id.trim()
     })
+    
+    if (form.value.phone && !userStore.user?.phone) {
+      await handleBindPhone()
+    }
+    
     success.value = true
     setTimeout(() => {
       router.back()
@@ -230,50 +203,20 @@ async function handleSubmit() {
             <label class="form-label">
               手机号
               <span class="optional" v-if="!form.phone">（用于找回密码）</span>
+              <span class="bound-tag" v-else>已绑定</span>
             </label>
-            <div class="phone-row" v-if="!form.phone">
-              <input 
-                v-model="form.phone"
-                type="tel" 
-                class="form-input"
-                placeholder="请输入手机号"
-                maxlength="11"
-              />
-              <button 
-                type="button" 
-                class="sms-btn" 
-                @click="sendPhoneCode"
-                :disabled="smsCountdown > 0 || smsSending"
-              >
-                {{ smsCountdown > 0 ? `${smsCountdown}s` : (smsSending ? '发送中...' : '获取验证码') }}
-              </button>
-            </div>
+            <input 
+              v-if="!form.phone"
+              v-model="form.phone"
+              type="tel" 
+              class="form-input"
+              placeholder="请输入手机号"
+              maxlength="11"
+            />
             <div v-else class="phone-bound">
               <span class="phone-value">{{ form.phone }}</span>
-              <button type="button" class="change-btn" @click="form.phone = ''">更换</button>
             </div>
-            <span class="form-hint" v-if="!form.phone">绑定手机号可以通过短信验证码找回密码</span>
-          </div>
-
-          <div class="form-group" v-if="form.phone && !userStore.user?.phone">
-            <label class="form-label">短信验证码</label>
-            <div class="sms-row">
-              <input 
-                v-model="phoneCode"
-                type="text" 
-                class="form-input"
-                placeholder="请输入验证码"
-                maxlength="6"
-              />
-              <button 
-                type="button" 
-                class="bind-btn" 
-                @click="handleBindPhone"
-                :disabled="bindingPhone || !phoneCode"
-              >
-                {{ bindingPhone ? '绑定中...' : '绑定' }}
-              </button>
-            </div>
+            <span class="form-hint" v-if="!form.phone">绑定手机号可以通过手机号找回密码</span>
           </div>
         </form>
       </div>
@@ -493,77 +436,30 @@ async function handleSubmit() {
   font-size: 0.875rem;
 }
 
-.phone-row {
-  display: flex;
-  gap: 12px;
+.bound-tag {
+  font-size: 0.75rem;
+  background: #d1fae5;
+  color: #065f46;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: normal;
 }
 
-.phone-row .form-input {
-  flex: 1;
-}
-
-.sms-btn,
-.bind-btn {
-  padding: 12px 16px;
-  background: var(--primary);
-  color: white;
-  border-radius: var(--radius);
-  font-weight: 600;
-  white-space: nowrap;
-  transition: all var(--transition);
-}
-
-.sms-btn {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 2px solid var(--border);
-}
-
-.sms-btn:hover:not(:disabled) {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.bind-btn:hover:not(:disabled) {
-  background: var(--primary-dark);
-}
-
-.sms-btn:disabled,
-.bind-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.dark .bound-tag {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
 }
 
 .phone-bound {
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 12px 16px;
   background: var(--bg-secondary);
   border-radius: var(--radius);
 }
 
 .phone-value {
-  flex: 1;
   color: var(--text-primary);
   font-weight: 500;
-}
-
-.change-btn {
-  padding: 6px 12px;
-  background: var(--primary);
-  color: white;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.sms-row {
-  display: flex;
-  gap: 12px;
-}
-
-.sms-row .form-input {
-  flex: 1;
 }
 </style>
