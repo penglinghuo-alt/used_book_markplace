@@ -112,7 +112,10 @@ onMounted(() => {
                 {{ conv.last_message || '暂无消息' }}
               </p>
             </div>
-            <div class="conv-arrow">›</div>
+            <div class="conv-right">
+              <span v-if="conv.unread_count > 0" class="unread-badge">{{ conv.unread_count > 99 ? '99+' : conv.unread_count }}</span>
+              <span class="conv-arrow">›</span>
+            </div>
           </div>
         </div>
       </div>
@@ -278,6 +281,24 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.conv-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.unread-badge {
+  background: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
 }
 
 .conv-arrow {
