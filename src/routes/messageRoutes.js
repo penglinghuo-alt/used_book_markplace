@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const messageController = require('../controllers/messageController');
 const { auth } = require('../middleware/auth');
+const { strictRateLimiter } = require('../middleware/rateLimiter');
 const {
     validate,
     sendMessageValidation,
@@ -24,6 +25,10 @@ const {
 router.post(
     '/',
     auth,
+    strictRateLimiter({
+        windowMs: 60 * 1000,
+        maxRequests: 20
+    }),
     validate(sendMessageValidation),
     messageController.sendMessage
 );

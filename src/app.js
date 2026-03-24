@@ -10,41 +10,53 @@ const logger = require('./config/logger');
 const db = require('./config/database');
 const routes = require('./routes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { rateLimiter, strictRateLimiter } = require('./middleware/rateLimiter');
+const { securityHeaders, corsOptions, botDetector } = require('./middleware/security');
+const { sanitizeInput, validateContentType } = require('./middleware/sanitize');
 
-// 创建 Express 应用实例
 const app = express();
 
-// ==================== 中间件配置 ====================
+app.set('trust proxy', 1);
 
-/**
- * 解析 JSON 请求体
- * 必须在路由配置之前设置
- */
-app.use(express.json({ limit: '10mb' }));
+app.use(corsOptions);
+app.use(securityHeaders);
+app.use(botDetector);
 
-/**
- * 解析 URL-encoded 请求体
- * 用于处理表单提交
- */
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-/**
- * CORS 中间件
- * 允许跨域请求
- */
 app.use((req, res, next) => {
-    // 允许所有来源访问（生产环境应该限制）
-    res.header('Access-Control-Allow-Origin', '*');
-    // 允许的 HTTP 方法
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    // 允许的请求头
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    
-    // 处理预检请求
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        if (duration > 5000) {
+            logger.warn('慢请求 detected', { 
+                method: req.method, 
+                path: req.path, 
+                duration: `${duration}ms`,
+                ip: req.ip
+            });
+        }
+    });
+    next();
+});
+
+app.use(rateLimiter({
+    windowMs: 60 * 1000,
+    maxRequests: 100,
+    message: '请求过于频繁，请稍后再试'
+}));
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(sanitizeInput);
+app.use(validateContentType);
+
+app.use((req, res, next) => {
+    req.requestTime = new Date().toISOString();
+    logger.info('请求开始', { 
+        method: req.method, 
+        path: req.path, 
+        ip: req.ip,
+        userAgent: req.headers['user-agent']?.substring(0, 100)
+    });
     next();
 });
 

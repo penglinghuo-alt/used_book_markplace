@@ -12,6 +12,7 @@ const { auth } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 const { generateCaptcha, validateCaptcha } = require('../utils/captcha');
 const { sendSmsCode, verifySmsCode } = require('../utils/sms');
+const { strictRateLimiter } = require('../middleware/rateLimiter');
 const {
     validate,
     registerValidation,
@@ -26,7 +27,10 @@ const {
  * @desc    获取图形验证码
  * @access  公开
  */
-router.get('/captcha', (req, res) => {
+router.get('/captcha', strictRateLimiter({
+    windowMs: 60 * 1000,
+    maxRequests: 10
+}), (req, res) => {
     const captcha = generateCaptcha();
     res.json({
         success: true,
@@ -218,6 +222,10 @@ router.get('/find-by-phone', async (req, res) => {
  */
 router.post(
     '/register',
+    strictRateLimiter({
+        windowMs: 60 * 1000,
+        maxRequests: 3
+    }),
     validate(registerValidation),
     userController.register
 );
@@ -229,6 +237,10 @@ router.post(
  */
 router.post(
     '/login',
+    strictRateLimiter({
+        windowMs: 60 * 1000,
+        maxRequests: 5
+    }),
     validate(loginValidation),
     userController.login
 );
