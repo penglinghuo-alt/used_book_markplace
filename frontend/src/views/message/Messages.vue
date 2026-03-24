@@ -22,8 +22,11 @@ async function fetchConversations() {
     
     for (const conv of conversations.value) {
       try {
-        const userRes = await userApi.getUserById(conv.other_user_id)
-        conv.otherUser = userRes.user
+        const userId = conv.other_user_id
+        if (userId) {
+          const userRes = await userApi.getUserById(userId)
+          conv.otherUser = userRes.user
+        }
       } catch (e) {
         console.error('获取用户失败', e)
       }

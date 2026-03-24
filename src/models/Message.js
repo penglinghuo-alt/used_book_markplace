@@ -187,10 +187,10 @@ class Message {
                     CASE 
                         WHEN m.sender_id = ? THEN m.receiver_id 
                         ELSE m.sender_id 
-                    END as partner_id,
-                    u.username as partner_name,
+                    END as other_user_id,
+                    u.username as other_user_name,
                     m.content as last_message,
-                    m.sent_at as last_sent_at,
+                    m.sent_at as last_message_time,
                     (SELECT COUNT(*) FROM messages 
                      WHERE sender_id = CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END
                        AND receiver_id = ? AND sent_at > m.sent_at) as unread_count
