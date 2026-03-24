@@ -231,19 +231,52 @@ class Book {
      * @param {string} status - 新状态 ('active' 或 'sold')
      * @returns {Promise<boolean>} 更新是否成功
      */
-    static async updateStatus(id, status) {
+    static async updateStatus(id, status, transactionData = null) {
+        const connection = await db.pool.getConnection();
+        
         try {
-            const sql = 'UPDATE books SET status = ? WHERE id = ?';
-            const affectedRows = await db.execute(sql, [status, id]);
+            await connection.beginTransaction();
             
-            if (affectedRows > 0) {
+            const sql = 'UPDATE books SET status = ? WHERE id = ?';
+            const [result] = await connection.execute(sql, [status, id]);
+            
+            if (result.affectedRows === 0) {
+                await connection.rollback();
+                return false;
+            }
+            
+            if (status === 'sold' && transactionData) {
+                const { buyer_id, seller_id } = transactionData;
+                
+                const [buyerCheck] = await connection.execute(
+                    'SELECT id FROM users WHERE id = ?',
+                    [buyer_id]
+                );
+                
+                if (buyerCheck.length === 0) {
+                    await connection.rollback();
+                    throw new Error('买家不存在');
+                }
+                
+                await connection.execute(
+                    'INSERT INTO transactions (book_id, buyer_id, seller_id) VALUES (?, ?, ?)',
+                    [id, buyer_id, seller_id]
+                );
+            }
+            
+            await connection.commit();
+            
+            if (result.affectedRows > 0) {
                 logger.info(`书籍状态更新`, { bookId: id, status });
             }
             
-            return affectedRows > 0;
+            return result.affectedRows > 0;
         } catch (error) {
+            await connection.rollback();
             logger.error('更新书籍状态失败', { error: error.message, bookId: id });
             throw error;
+        } finally {
+            connection.release();
         }
     }
 

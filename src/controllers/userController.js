@@ -312,6 +312,20 @@ const uploadAvatar = asyncHandler(async (req, res) => {
     });
 });
 
+/**
+ * 获取用户列表（用于选择买家）
+ * GET /api/users/selection
+ * 需要认证
+ */
+const getUsersForSelection = asyncHandler(async (req, res) => {
+    const users = await User.getUsersForSelection(req.user.id);
+    
+    res.status(200).json({
+        success: true,
+        data: { users }
+    });
+});
+
 module.exports = {
     register,
     login,
@@ -320,5 +334,6 @@ module.exports = {
     getAllUsers,
     updateProfile,
     updatePassword,
-    uploadAvatar
+    uploadAvatar,
+    getUsersForSelection
 };

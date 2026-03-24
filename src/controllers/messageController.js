@@ -177,11 +177,43 @@ const deleteMessage = asyncHandler(async (req, res) => {
     });
 });
 
+/**
+ * 获取当前用户的未读消息总数
+ * GET /api/messages/unread-count
+ * 需要认证
+ */
+const getUnreadCount = asyncHandler(async (req, res) => {
+    const count = await Message.getUnreadCount(req.user.id);
+    
+    res.status(200).json({
+        success: true,
+        data: { unreadCount: count }
+    });
+});
+
+/**
+ * 标记与某用户的聊天消息为已读
+ * POST /api/messages/conversation/:partnerId/read
+ * 需要认证
+ */
+const markConversationAsRead = asyncHandler(async (req, res) => {
+    const partnerId = parseInt(req.params.partnerId);
+    const count = await Message.markAsRead(req.user.id, partnerId);
+    
+    res.status(200).json({
+        success: true,
+        message: `已标记 ${count} 条消息为已读`,
+        data: { count }
+    });
+});
+
 module.exports = {
     sendMessage,
     getConversation,
     getMessagesByBook,
     getConversationsList,
     getMessageById,
-    deleteMessage
+    deleteMessage,
+    getUnreadCount,
+    markConversationAsRead
 };

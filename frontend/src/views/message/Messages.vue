@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { messageApi, userApi } from '@/api'
 import { useUserStore } from '@/stores/user'
+import { useMessageStore } from '@/stores/message'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 
@@ -10,6 +11,7 @@ dayjs.locale('zh-cn')
 
 const router = useRouter()
 const userStore = useUserStore()
+const messageStore = useMessageStore()
 
 const conversations = ref([])
 const loading = ref(false)
@@ -61,6 +63,7 @@ function formatTime(time) {
 
 onMounted(() => {
   fetchConversations()
+  messageStore.fetchUnreadCount()
 })
 </script>
 

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { bookApi } from '@/api'
+import { bookApi, userApi } from '@/api'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 
@@ -12,6 +12,12 @@ const router = useRouter()
 const books = ref([])
 const loading = ref(false)
 const activeTab = ref('active')
+
+const showBuyerModal = ref(false)
+const selectedBook = ref(null)
+const availableUsers = ref([])
+const selectedBuyerId = ref('')
+const loadingUsers = ref(false)
 
 const filteredBooks = computed(() => {
   return books.value.filter(book => 
@@ -37,25 +43,53 @@ async function fetchMyBooks() {
   }
 }
 
+async function fetchAvailableUsers() {
+  loadingUsers.value = true
+  try {
+    const res = await userApi.getUsersForSelection()
+    availableUsers.value = res.users || []
+  } catch (error) {
+    console.error('获取用户列表失败:', error)
+  } finally {
+    loadingUsers.value = false
+  }
+}
+
+function openBuyerModal(book) {
+  selectedBook.value = book
+  selectedBuyerId.value = ''
+  fetchAvailableUsers()
+  showBuyerModal.value = true
+}
+
+function closeBuyerModal() {
+  showBuyerModal.value = false
+  selectedBook.value = null
+  selectedBuyerId.value = ''
+}
+
+async function confirmMarkAsSold() {
+  if (!selectedBuyerId.value) {
+    alert('请选择买家')
+    return
+  }
+  
+  try {
+    await bookApi.updateBookStatus(selectedBook.value.id, 'sold', selectedBuyerId.value)
+    await fetchMyBooks()
+    closeBuyerModal()
+  } catch (error) {
+    console.error('标记失败:', error)
+    alert('操作失败，请重试')
+  }
+}
+
 function formatTime(time) {
   return dayjs(time).format('MM/DD')
 }
 
 function goToDetail(book) {
   router.push(`/market/book/${book.id}`)
-}
-
-async function markAsSold(book) {
-  const buyerName = prompt('请输入买家用户名：')
-  if (!buyerName) return
-  
-  try {
-    await bookApi.updateBookStatus(book.id, 'sold')
-    await fetchMyBooks()
-  } catch (error) {
-    console.error('标记失败:', error)
-    alert('操作失败，请重试')
-  }
 }
 
 async function deleteBook(book) {
@@ -180,7 +214,7 @@ onMounted(() => {
               <button 
                 v-if="book.status === 'active'"
                 class="action-btn sold-btn"
-                @click="markAsSold(book)"
+                @click="openBuyerModal(book)"
               >
                 标记售出
               </button>
@@ -193,6 +227,33 @@ onMounted(() => {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showBuyerModal" class="modal-overlay" @click.self="closeBuyerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>选择买家</h3>
+        <button class="modal-close" @click="closeBuyerModal">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="selected-book">书籍：《{{ selectedBook?.title }}》</p>
+        <div class="form-group">
+          <label class="form-label">选择买家</label>
+          <select v-model="selectedBuyerId" class="form-select">
+            <option value="">请选择买家</option>
+            <option v-for="user in availableUsers" :key="user.id" :value="user.id">
+              {{ user.username }} {{ user.wechat_id ? '(' + user.wechat_id + ')' : '' }}
+            </option>
+          </select>
+        </div>
+        <div v-if="loadingUsers" class="loading-hint">加载用户中...</div>
+        <div v-else-if="availableUsers.length === 0" class="empty-hint">暂无可选买家</div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" @click="closeBuyerModal">取消</button>
+        <button class="submit-btn" @click="confirmMarkAsSold" :disabled="!selectedBuyerId">确认售出</button>
       </div>
     </div>
   </div>
@@ -567,5 +628,145 @@ onMounted(() => {
   .book-actions {
     margin-left: 76px;
   }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--text-tertiary);
+  transition: all var(--transition);
+}
+
+.modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.selected-book {
+  background: var(--bg-secondary);
+  padding: 12px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all var(--transition);
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.loading-hint,
+.empty-hint {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.cancel-btn,
+.submit-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all var(--transition);
+}
+
+.cancel-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.cancel-btn:hover {
+  background: var(--bg-hover);
+}
+
+.submit-btn {
+  background: var(--primary);
+  color: white;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

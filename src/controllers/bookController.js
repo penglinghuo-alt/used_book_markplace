@@ -246,36 +246,39 @@ const deleteBook = asyncHandler(async (req, res) => {
  */
 const updateBookStatus = asyncHandler(async (req, res) => {
     const bookId = parseInt(req.params.id);
-    const { status } = req.body;
+    const { status, buyer_id } = req.body;
     
-    // 验证状态值
+    if (!status) {
+        throw new AppError('状态不能为空', 400);
+    }
+    
     if (!['active', 'sold'].includes(status)) {
         throw new AppError('状态必须是 active 或 sold', 400);
     }
     
-    // 获取书籍信息
     const book = await Book.findById(bookId);
     
     if (!book) {
         throw new AppError('书籍不存在', 404);
     }
     
-    // 检查是否是卖家
     if (book.seller_id !== req.user.id) {
         throw new AppError('只有卖家可以更新书籍状态', 403);
     }
     
-    // 更新状态
-    const success = await Book.updateStatus(bookId, status);
+    if (status === 'sold' && !buyer_id) {
+        throw new AppError('标记售出时必须指定买家', 400);
+    }
+    
+    const success = await Book.updateStatus(bookId, status, buyer_id ? { buyer_id, seller_id: req.user.id } : null);
     
     if (!success) {
         throw new AppError('状态更新失败', 500);
     }
     
-    // 获取更新后的书籍信息
     const updatedBook = await Book.findById(bookId);
     
-    logger.info(`书籍状态更新`, { bookId, status, userId: req.user.id });
+    logger.info(`书籍状态更新`, { bookId, status, userId: req.user.id, buyer_id });
     
     res.status(200).json({
         success: true,

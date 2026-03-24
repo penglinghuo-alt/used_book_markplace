@@ -1,13 +1,15 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
+import { useMessageStore } from '@/stores/message'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const themeStore = useThemeStore()
+const messageStore = useMessageStore()
 
 const showNav = computed(() => {
   return route.meta.requiresAuth !== undefined || route.name === 'Market'
@@ -21,6 +23,15 @@ const navItems = [
 ]
 
 const isActive = (path) => route.path.startsWith(path)
+
+onMounted(() => {
+  if (userStore.isLoggedIn) {
+    messageStore.fetchUnreadCount()
+    setInterval(() => {
+      messageStore.fetchUnreadCount()
+    }, 30000)
+  }
+})
 </script>
 
 <template>
@@ -82,7 +93,10 @@ const isActive = (path) => route.path.startsWith(path)
         class="tab-item"
         :class="{ active: isActive(item.path) }"
       >
-        <span class="tab-icon">{{ item.icon }}</span>
+        <span class="tab-icon">
+          {{ item.icon }}
+          <span v-if="item.name === 'messages' && messageStore.unreadCount > 0" class="unread-dot"></span>
+        </span>
         <span class="tab-label">{{ item.label }}</span>
       </router-link>
     </nav>
@@ -288,6 +302,17 @@ const isActive = (path) => route.path.startsWith(path)
 .tab-label {
   font-size: 12px;
   font-weight: 500;
+}
+
+.unread-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
 }
 
 @media (max-width: 768px) {

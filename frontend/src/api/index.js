@@ -34,6 +34,9 @@ export const userApi = {
   },
   getUserById(id) {
     return api.get(`/users/${id}`)
+  },
+  getUsersForSelection() {
+    return api.get('/users/selection')
   }
 }
 
@@ -56,8 +59,8 @@ export const bookApi = {
   updateBook(id, data) {
     return api.put(`/books/${id}`, data)
   },
-  updateBookStatus(id, status) {
-    return api.patch(`/books/${id}/status`, { status })
+  updateBookStatus(id, status, buyerId = null) {
+    return api.patch(`/books/${id}/status`, { status, buyer_id: buyerId })
   },
   deleteBook(id) {
     return api.delete(`/books/${id}`)
@@ -79,6 +82,12 @@ export const messageApi = {
   },
   deleteMessage(id) {
     return api.delete(`/messages/${id}`)
+  },
+  getUnreadCount() {
+    return api.get('/messages/unread-count')
+  },
+  markAsRead(partnerId) {
+    return api.post(`/messages/conversation/${partnerId}/read`)
   }
 }
 

@@ -226,6 +226,27 @@ class User {
             throw error;
         }
     }
+
+    /**
+     * 获取用户列表（用于选择买家，排除当前用户）
+     * @param {number} excludeUserId - 排除的用户ID
+     * @returns {Promise<Array>} 用户列表
+     */
+    static async getUsersForSelection(excludeUserId) {
+        try {
+            const sql = `
+                SELECT id, username, wechat_id 
+                FROM users 
+                WHERE id != ?
+                ORDER BY username ASC
+            `;
+            const users = await db.query(sql, [excludeUserId]);
+            return users;
+        } catch (error) {
+            logger.error('获取用户列表失败', { error: error.message });
+            throw error;
+        }
+    }
 }
 
 module.exports = User;

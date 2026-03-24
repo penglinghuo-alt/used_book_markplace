@@ -120,7 +120,7 @@ onMounted(() => {
             <div class="tx-info">
               <div class="tx-partner">
                 <span class="label">{{ activeTab === 'sold' ? '买家' : '卖家' }}：</span>
-                <span class="value">{{ activeTab === 'sold' ? tx.buyer_username : tx.seller_username }}</span>
+                <span class="value">{{ activeTab === 'sold' ? tx.buyer_name : tx.seller_name }}</span>
               </div>
               <div class="tx-price" v-if="tx.book_price">
                 <span class="label">价格：</span>

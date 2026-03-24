@@ -79,6 +79,28 @@ router.get(
 );
 
 /**
+ * @route   GET /api/messages/unread-count
+ * @desc    获取当前用户未读消息总数
+ * @access  需要认证
+ */
+router.get(
+    '/unread-count',
+    auth,
+    messageController.getUnreadCount
+);
+
+/**
+ * @route   POST /api/messages/conversation/:partnerId/read
+ * @desc    标记与某用户的聊天消息为已读
+ * @access  需要认证
+ */
+router.post(
+    '/conversation/:partnerId/read',
+    auth,
+    messageController.markConversationAsRead
+);
+
+/**
  * @route   DELETE /api/messages/:id
  * @desc    删除消息
  * @access  需要认证（仅发送者）

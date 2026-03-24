@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { messageApi, userApi, bookApi } from '@/api'
 import { useUserStore } from '@/stores/user'
+import { useMessageStore } from '@/stores/message'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 
@@ -11,6 +12,7 @@ dayjs.locale('zh-cn')
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const messageStore = useMessageStore()
 
 const otherUserId = computed(() => Number(route.params.userId))
 const bookId = computed(() => route.query.bookId ? Number(route.query.bookId) : null)
@@ -48,6 +50,7 @@ async function fetchMessages() {
     const res = await messageApi.getConversation(otherUserId.value)
     messages.value = res.messages || res || []
     scrollToBottom()
+    messageStore.markAsRead(otherUserId.value)
   } catch (error) {
     console.error('获取消息失败:', error)
   } finally {

@@ -119,6 +119,17 @@ router.get(
 );
 
 /**
+ * @route   GET /api/users/selection
+ * @desc    获取用户列表（用于选择买家）
+ * @access  需要认证
+ */
+router.get(
+    '/selection',
+    auth,
+    userController.getUsersForSelection
+);
+
+/**
  * @route   GET /api/users/:id
  * @desc    获取指定用户公开资料
  * @access  需要认证

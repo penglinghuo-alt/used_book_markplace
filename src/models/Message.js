@@ -248,4 +248,48 @@ class Message {
     }
 }
 
+    /**
+     * 标记与某用户的所有消息为已读
+     * @param {number} userId - 当前用户ID
+     * @param {number} partnerId - 对方用户ID
+     * @returns {Promise<number>} 已读消息数量
+     */
+    static async markAsRead(userId, partnerId) {
+        try {
+            const sql = `
+                UPDATE messages 
+                SET is_read = 1 
+                WHERE receiver_id = ? 
+                  AND sender_id = ? 
+                  AND (is_read = 0 OR is_read IS NULL)
+            `;
+            const result = await db.execute(sql, [userId, partnerId]);
+            return result.affectedRows;
+        } catch (error) {
+            logger.error('标记消息已读失败', { error: error.message, userId, partnerId });
+            throw error;
+        }
+    }
+
+    /**
+     * 获取用户的未读消息总数
+     * @param {number} userId - 用户ID
+     * @returns {Promise<number>} 未读消息数量
+     */
+    static async getUnreadCount(userId) {
+        try {
+            const sql = `
+                SELECT COUNT(*) as count 
+                FROM messages 
+                WHERE receiver_id = ? AND (is_read = 0 OR is_read IS NULL)
+            `;
+            const result = await db.query(sql, [userId]);
+            return result[0].count;
+        } catch (error) {
+            logger.error('获取未读消息数失败', { error: error.message, userId });
+            throw error;
+        }
+    }
+}
+
 module.exports = Message;

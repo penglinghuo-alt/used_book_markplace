@@ -139,6 +139,7 @@ async function initializeDatabase() {
             receiver_id INT NOT NULL COMMENT '接收者ID',
             book_id INT DEFAULT NULL COMMENT '关联的书籍ID(可选)',
             content TEXT NOT NULL COMMENT '消息内容',
+            is_read TINYINT(1) DEFAULT 0 COMMENT '是否已读：0-未读，1-已读',
             sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
             INDEX idx_sender_id (sender_id),
             INDEX idx_receiver_id (receiver_id),
@@ -184,6 +185,15 @@ async function initializeDatabase() {
         
         await query(createMessageTable);
         console.log('✅ messages 表创建成功');
+        
+        try {
+            await query("ALTER TABLE messages ADD COLUMN is_read TINYINT(1) DEFAULT 0 COMMENT '是否已读' AFTER content");
+            console.log('✅ messages 表 is_read 列添加成功');
+        } catch (e) {
+            if (e.code !== 'ER_DUP_FIELDNAME') {
+                console.log('ℹ️ is_read 列已存在或无需添加');
+            }
+        }
         
         await query(createTransactionTable);
         console.log('✅ transactions 表创建成功');
