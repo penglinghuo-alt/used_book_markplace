@@ -108,11 +108,13 @@ async function initializeDatabase() {
             id INT AUTO_INCREMENT PRIMARY KEY COMMENT '用户ID',
             username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
             password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希值',
+            phone VARCHAR(20) DEFAULT NULL COMMENT '手机号',
             bio VARCHAR(255) DEFAULT '' COMMENT '个性签名',
             wechat_id VARCHAR(100) DEFAULT NULL COMMENT '微信联系方式',
             avatar_url VARCHAR(500) DEFAULT NULL COMMENT '头像URL',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-            INDEX idx_username (username)
+            INDEX idx_username (username),
+            INDEX idx_phone (phone)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表'
     `;
 
@@ -177,6 +179,15 @@ async function initializeDatabase() {
         } catch (e) {
             if (e.code !== 'ER_DUP_FIELDNAME') {
                 console.log('ℹ️ avatar_url 列已存在或无需添加');
+            }
+        }
+        
+        try {
+            await query("ALTER TABLE users ADD COLUMN phone VARCHAR(20) DEFAULT NULL COMMENT '手机号' AFTER password_hash");
+            console.log('✅ users 表 phone 列添加成功');
+        } catch (e) {
+            if (e.code !== 'ER_DUP_FIELDNAME') {
+                console.log('ℹ️ phone 列已存在或无需添加');
             }
         }
         

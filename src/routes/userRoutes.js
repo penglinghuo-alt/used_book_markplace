@@ -11,6 +11,7 @@ const userController = require('../controllers/userController');
 const { auth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { generateCaptcha, validateCaptcha } = require('../utils/captcha');
+const { sendSmsCode, verifySmsCode } = require('../utils/sms');
 const {
     validate,
     registerValidation,
@@ -48,6 +49,147 @@ router.post('/verify-captcha', (req, res) => {
         success: isValid,
         message: isValid ? '验证成功' : '验证码错误'
     });
+});
+
+/**
+ * @route   POST /api/users/send-sms
+ * @desc    发送短信验证码
+ * @access  公开
+ */
+router.post('/send-sms', (req, res) => {
+    const { phone } = req.body;
+    
+    if (!phone) {
+        return res.status(400).json({
+            success: false,
+            message: '请输入手机号'
+        });
+    }
+    
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        return res.status(400).json({
+            success: false,
+            message: '手机号格式不正确'
+        });
+    }
+    
+    const result = sendSmsCode(phone);
+    res.json(result);
+});
+
+/**
+ * @route   POST /api/users/verify-sms
+ * @desc    验证短信验证码
+ * @access  公开
+ */
+router.post('/verify-sms', (req, res) => {
+    const { phone, code } = req.body;
+    
+    if (!phone || !code) {
+        return res.status(400).json({
+            success: false,
+            message: '请输入手机号和验证码'
+        });
+    }
+    
+    const isValid = verifySmsCode(phone, code);
+    res.json({
+        success: isValid,
+        message: isValid ? '验证成功' : '验证码错误'
+    });
+});
+
+/**
+ * @route   POST /api/users/reset-password
+ * @desc    通过短信验证码重置密码
+ * @access  公开
+ */
+router.post('/reset-password', async (req, res) => {
+    const { phone, code, newPassword } = req.body;
+    
+    if (!phone || !code || !newPassword) {
+        return res.status(400).json({
+            success: false,
+            message: '请填写完整信息'
+        });
+    }
+    
+    if (newPassword.length < 6) {
+        return res.status(400).json({
+            success: false,
+            message: '密码长度至少为6位'
+        });
+    }
+    
+    if (!verifySmsCode(phone, code)) {
+        return res.status(400).json({
+            success: false,
+            message: '验证码错误'
+        });
+    }
+    
+    try {
+        const user = await User.findByPhone(phone);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '该手机号未绑定任何账户'
+            });
+        }
+        
+        await User.updatePassword(user.id, newPassword);
+        res.json({
+            success: true,
+            message: '密码重置成功'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '密码重置失败'
+        });
+    }
+});
+
+/**
+ * @route   GET /api/users/find-by-phone
+ * @desc    通过手机号查找用户信息（用于找回密码）
+ * @access  公开
+ */
+router.get('/find-by-phone', async (req, res) => {
+    const { phone } = req.query;
+    
+    if (!phone) {
+        return res.status(400).json({
+            success: false,
+            message: '请输入手机号'
+        });
+    }
+    
+    try {
+        const user = await User.findByPhone(phone);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '该手机号未注册',
+                data: { bound: false }
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: '该手机号已绑定账户',
+            data: { 
+                bound: true,
+                username: user.username.substring(0, 2) + '***' + user.username.substring(user.username.length - 1)
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '查询失败'
+        });
+    }
 });
 
 /**
@@ -93,6 +235,72 @@ router.put(
     auth,
     validate(updateUserValidation),
     userController.updateProfile
+);
+
+/**
+ * @route   POST /api/users/me/phone
+ * @desc    绑定或更新手机号
+ * @access  需要认证
+ */
+router.post(
+    '/me/phone',
+    auth,
+    async (req, res) => {
+        const { phone, smsCode } = req.body;
+        
+        if (!phone) {
+            return res.status(400).json({
+                success: false,
+                message: '请输入手机号'
+            });
+        }
+        
+        const phoneRegex = /^1[3-9]\d{9}$/;
+        if (!phoneRegex.test(phone)) {
+            return res.status(400).json({
+                success: false,
+                message: '手机号格式不正确'
+            });
+        }
+        
+        if (!smsCode) {
+            return res.status(400).json({
+                success: false,
+                message: '请输入短信验证码'
+            });
+        }
+        
+        const { verifySmsCode } = require('../utils/sms');
+        if (!verifySmsCode(phone, smsCode)) {
+            return res.status(400).json({
+                success: false,
+                message: '验证码错误'
+            });
+        }
+        
+        try {
+            const User = require('../models/User');
+            const existingUser = await User.findByPhone(phone);
+            if (existingUser && existingUser.id !== req.user.id) {
+                return res.status(400).json({
+                    success: false,
+                    message: '该手机号已被其他用户绑定'
+                });
+            }
+            
+            await User.updatePhone(req.user.id, phone);
+            
+            res.json({
+                success: true,
+                message: '手机号绑定成功'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: '绑定失败'
+            });
+        }
+    }
 );
 
 /**

@@ -30,7 +30,7 @@ const logger = require('../config/logger');
  * }
  */
 const register = asyncHandler(async (req, res) => {
-    const { username, password, bio, wechat_id, captchaToken, captchaInput } = req.body;
+    const { username, password, bio, wechat_id, phone, smsCode, captchaToken, captchaInput } = req.body;
     
     if (!captchaToken || !captchaInput) {
         throw new AppError('请输入验证码', 400);
@@ -45,11 +45,33 @@ const register = asyncHandler(async (req, res) => {
         throw new AppError('用户名已存在', 400);
     }
     
+    if (phone) {
+        const phoneRegex = /^1[3-9]\d{9}$/;
+        if (!phoneRegex.test(phone)) {
+            throw new AppError('手机号格式不正确', 400);
+        }
+        
+        if (!smsCode) {
+            throw new AppError('请输入短信验证码', 400);
+        }
+        
+        const { verifySmsCode } = require('../utils/sms');
+        if (!verifySmsCode(phone, smsCode)) {
+            throw new AppError('短信验证码错误', 400);
+        }
+        
+        const existingPhoneUser = await User.findByPhone(phone);
+        if (existingPhoneUser) {
+            throw new AppError('该手机号已被使用', 400);
+        }
+    }
+    
     const user = await User.create({
         username,
         password,
         bio: bio || '',
-        wechat_id: wechat_id || null
+        wechat_id: wechat_id || null,
+        phone: phone || null
     });
     
     const token = generateToken({ userId: user.id });
@@ -65,6 +87,7 @@ const register = asyncHandler(async (req, res) => {
                 username: user.username,
                 bio: user.bio,
                 wechat_id: user.wechat_id,
+                phone: user.phone,
                 created_at: user.created_at
             },
             token
@@ -97,12 +120,12 @@ const login = asyncHandler(async (req, res) => {
     
     const user = await User.findByUsername(username);
     if (!user) {
-        throw new AppError('用户名或密码错误', 401);
+        throw new AppError('该用户未注册', 401);
     }
     
     const isValidPassword = await User.verifyPassword(password, user.password_hash);
     if (!isValidPassword) {
-        throw new AppError('用户名或密码错误', 401);
+        throw new AppError('密码错误', 401);
     }
     
     const token = generateToken({ userId: user.id });

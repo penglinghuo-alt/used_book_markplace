@@ -13,6 +13,8 @@ const form = ref({
   confirmPassword: '',
   bio: '',
   wechat_id: '',
+  phone: '',
+  smsCode: '',
   captchaToken: '',
   captchaInput: ''
 })
@@ -22,6 +24,8 @@ const captcha = ref({
   data: ''
 })
 
+const smsSending = ref(false)
+const smsCountdown = ref(0)
 const loading = ref(false)
 const error = ref('')
 
@@ -32,6 +36,36 @@ async function fetchCaptcha() {
     form.value.captchaToken = res.token
   } catch (e) {
     console.error('获取验证码失败', e)
+  }
+}
+
+async function sendSms() {
+  if (!form.value.phone) {
+    error.value = '请先输入手机号'
+    return
+  }
+  
+  const phoneRegex = /^1[3-9]\d{9}$/
+  if (!phoneRegex.test(form.value.phone)) {
+    error.value = '手机号格式不正确'
+    return
+  }
+  
+  smsSending.value = true
+  try {
+    await userApi.sendSms(form.value.phone)
+    error.value = ''
+    smsCountdown.value = 60
+    const timer = setInterval(() => {
+      smsCountdown.value--
+      if (smsCountdown.value <= 0) {
+        clearInterval(timer)
+      }
+    }, 1000)
+  } catch (e) {
+    error.value = e.message || '发送验证码失败'
+  } finally {
+    smsSending.value = false
   }
 }
 
@@ -62,6 +96,11 @@ async function handleRegister() {
     return
   }
 
+  if (form.value.phone && !form.value.smsCode) {
+    error.value = '请输入短信验证码'
+    return
+  }
+
   loading.value = true
 
   try {
@@ -70,6 +109,8 @@ async function handleRegister() {
       password: form.value.password,
       bio: form.value.bio,
       wechat_id: form.value.wechat_id,
+      phone: form.value.phone || undefined,
+      smsCode: form.value.smsCode || undefined,
       captchaToken: form.value.captchaToken,
       captchaInput: form.value.captchaInput
     })
@@ -144,6 +185,41 @@ async function handleRegister() {
             />
             <div class="captcha-image" @click="fetchCaptcha" v-html="captcha.data"></div>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            手机号
+            <span class="optional">（可选，用于找回密码）</span>
+          </label>
+          <div class="sms-row">
+            <input 
+              v-model="form.phone"
+              type="tel" 
+              class="form-input"
+              placeholder="请输入手机号"
+              maxlength="11"
+            />
+            <button 
+              type="button" 
+              class="sms-btn" 
+              @click="sendSms"
+              :disabled="smsCountdown > 0 || smsSending"
+            >
+              {{ smsCountdown > 0 ? `${smsCountdown}s` : (smsSending ? '发送中...' : '获取验证码') }}
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" v-if="form.phone">
+          <label class="form-label">短信验证码</label>
+          <input 
+            v-model="form.smsCode"
+            type="text" 
+            class="form-input"
+            placeholder="请输入短信验证码"
+            maxlength="6"
+          />
         </div>
 
         <div class="form-group">
@@ -334,6 +410,36 @@ async function handleRegister() {
 .captcha-image :deep(svg) {
   width: 100%;
   height: 100%;
+}
+
+.sms-row {
+  display: flex;
+  gap: 12px;
+}
+
+.sms-row .form-input {
+  flex: 1;
+}
+
+.sms-btn {
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+
+.sms-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.sms-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .submit-btn {

@@ -13,6 +13,21 @@ export const userApi = {
   verifyCaptcha(token, input) {
     return api.post('/users/verify-captcha', { token, userInput: input })
   },
+  sendSms(phone) {
+    return api.post('/users/send-sms', { phone })
+  },
+  verifySms(phone, code) {
+    return api.post('/users/verify-sms', { phone, code })
+  },
+  resetPassword(phone, code, newPassword) {
+    return api.post('/users/reset-password', { phone, code, newPassword })
+  },
+  findByPhone(phone) {
+    return api.get('/users/find-by-phone', { params: { phone } })
+  },
+  bindPhone(phone, smsCode) {
+    return api.post('/users/me/phone', { phone, smsCode })
+  },
   getProfile() {
     return api.get('/users/me')
   },

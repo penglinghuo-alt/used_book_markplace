@@ -15,6 +15,18 @@ const form = ref({
   captchaInput: ''
 })
 
+const showForgotModal = ref(false)
+const forgotStep = ref(1)
+const forgotPhone = ref('')
+const forgotCode = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const foundUsername = ref('')
+const smsCountdown = ref(0)
+const smsSending = ref(false)
+const resetting = ref(false)
+const forgotError = ref('')
+
 const captcha = ref({
   token: '',
   data: ''
@@ -87,6 +99,105 @@ function handleDemoLogin() {
   
   router.push('/market')
 }
+
+function openForgotModal() {
+  showForgotModal.value = true
+  forgotStep.value = 1
+  forgotPhone.value = ''
+  forgotCode.value = ''
+  newPassword.value = ''
+  confirmPassword.value = ''
+  foundUsername.value = ''
+  forgotError.value = ''
+}
+
+function closeForgotModal() {
+  showForgotModal.value = false
+}
+
+async function checkPhone() {
+  forgotError.value = ''
+  
+  if (!forgotPhone.value) {
+    forgotError.value = '请输入手机号'
+    return
+  }
+  
+  const phoneRegex = /^1[3-9]\d{9}$/
+  if (!phoneRegex.test(forgotPhone.value)) {
+    forgotError.value = '手机号格式不正确'
+    return
+  }
+  
+  try {
+    const res = await userApi.findByPhone(forgotPhone.value)
+    if (res.data.bound) {
+      foundUsername.value = res.data.username
+      forgotStep.value = 2
+    } else {
+      forgotError.value = '该手机号未注册'
+    }
+  } catch (e) {
+    forgotError.value = e.message || '查询失败'
+  }
+}
+
+async function sendResetCode() {
+  forgotError.value = ''
+  smsSending.value = true
+  
+  try {
+    await userApi.sendSms(forgotPhone.value)
+    smsCountdown.value = 60
+    const timer = setInterval(() => {
+      smsCountdown.value--
+      if (smsCountdown.value <= 0) {
+        clearInterval(timer)
+      }
+    }, 1000)
+  } catch (e) {
+    forgotError.value = e.message || '发送验证码失败'
+  } finally {
+    smsSending.value = false
+  }
+}
+
+async function resetPassword() {
+  forgotError.value = ''
+  
+  if (!forgotCode.value) {
+    forgotError.value = '请输入验证码'
+    return
+  }
+  
+  if (!newPassword.value) {
+    forgotError.value = '请输入新密码'
+    return
+  }
+  
+  if (newPassword.value.length < 6) {
+    forgotError.value = '密码长度至少为6位'
+    return
+  }
+  
+  if (newPassword.value !== confirmPassword.value) {
+    forgotError.value = '两次输入的密码不一致'
+    return
+  }
+  
+  resetting.value = true
+  
+  try {
+    await userApi.resetPassword(forgotPhone.value, forgotCode.value, newPassword.value)
+    alert('密码重置成功，请使用新密码登录')
+    closeForgotModal()
+    fetchCaptcha()
+  } catch (e) {
+    forgotError.value = e.message || '重置失败'
+  } finally {
+    resetting.value = false
+  }
+}
 </script>
 
 <template>
@@ -158,6 +269,77 @@ function handleDemoLogin() {
           还没有账户？
           <router-link to="/register" class="link">立即注册</router-link>
         </p>
+        <p class="forgot-link">
+          <a href="#" @click.prevent="openForgotModal">忘记密码？</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showForgotModal" class="modal-overlay" @click.self="closeForgotModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>找回密码</h3>
+        <button class="modal-close" @click="closeForgotModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div v-if="forgotError" class="error-alert">{{ forgotError }}</div>
+
+        <div v-if="forgotStep === 1" class="step-content">
+          <p class="step-hint">请输入您绑定的手机号</p>
+          <div class="form-group">
+            <input 
+              v-model="forgotPhone"
+              type="tel" 
+              class="form-input"
+              placeholder="请输入手机号"
+              maxlength="11"
+            />
+          </div>
+          <button class="submit-btn full-width" @click="checkPhone">下一步</button>
+        </div>
+
+        <div v-if="forgotStep === 2" class="step-content">
+          <p class="step-hint">验证手机号：{{ forgotPhone }}</p>
+          <p class="username-hint">您的账户名：{{ foundUsername }}</p>
+          <div class="form-group">
+            <div class="sms-row">
+              <input 
+                v-model="forgotCode"
+                type="text" 
+                class="form-input"
+                placeholder="请输入验证码"
+                maxlength="6"
+              />
+              <button 
+                class="sms-btn" 
+                @click="sendResetCode"
+                :disabled="smsCountdown > 0 || smsSending"
+              >
+                {{ smsCountdown > 0 ? `${smsCountdown}s` : (smsSending ? '发送中...' : '获取验证码') }}
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <input 
+              v-model="newPassword"
+              type="password" 
+              class="form-input"
+              placeholder="请输入新密码（至少6位）"
+            />
+          </div>
+          <div class="form-group">
+            <input 
+              v-model="confirmPassword"
+              type="password" 
+              class="form-input"
+              placeholder="请再次输入新密码"
+            />
+          </div>
+          <button class="submit-btn full-width" @click="resetPassword" :disabled="resetting">
+            {{ resetting ? '重置中...' : '重置密码' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -373,6 +555,19 @@ function handleDemoLogin() {
   color: var(--text-secondary);
 }
 
+.forgot-link {
+  margin-top: 12px;
+}
+
+.forgot-link a {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.forgot-link a:hover {
+  color: var(--primary);
+}
+
 .link {
   color: var(--primary);
   font-weight: 600;
@@ -380,6 +575,144 @@ function handleDemoLogin() {
 
 .link:hover {
   text-decoration: underline;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--text-tertiary);
+  transition: all var(--transition);
+}
+
+.modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.step-content {
+  text-align: center;
+}
+
+.step-hint {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.username-hint {
+  background: var(--bg-secondary);
+  padding: 12px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fee2e2;
+  border-radius: var(--radius);
+  color: #991b1b;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.dark .error-alert {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all var(--transition);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.sms-row {
+  display: flex;
+  gap: 12px;
+}
+
+.sms-row .form-input {
+  flex: 1;
+}
+
+.sms-btn {
+  padding: 12px 16px;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sms-btn:disabled {
+  opacity: 0.5;
 }
 
 @media (max-width: 480px) {

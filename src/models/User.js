@@ -24,29 +24,28 @@ class User {
      * @param {string} userData.password - 原始密码
      * @param {string} [userData.bio] - 个性签名
      * @param {string} [userData.wechat_id] - 微信联系方式
+     * @param {string} [userData.phone] - 手机号
      * @returns {Promise<Object>} 创建的用户对象（不含密码）
      */
-    static async create({ username, password, bio = '', wechat_id = null }) {
+    static async create({ username, password, bio = '', wechat_id = null, phone = null }) {
         try {
-            // 生成密码哈希，使用 10 轮加密
             const salt = await bcrypt.genSalt(10);
             const passwordHash = await bcrypt.hash(password, salt);
             
-            // 插入数据库
             const sql = `
-                INSERT INTO users (username, password_hash, bio, wechat_id)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO users (username, password_hash, bio, wechat_id, phone)
+                VALUES (?, ?, ?, ?, ?)
             `;
-            const userId = await db.insert(sql, [username, passwordHash, bio, wechat_id]);
+            const userId = await db.insert(sql, [username, passwordHash, bio, wechat_id, phone]);
             
             logger.info(`新用户创建成功: ${username}`, { userId });
             
-            // 返回创建的用户信息（不包含密码）
             return {
                 id: userId,
                 username,
                 bio,
                 wechat_id: wechat_id,
+                phone: phone,
                 created_at: new Date()
             };
         } catch (error) {
@@ -82,7 +81,7 @@ class User {
      */
     static async findById(id) {
         try {
-            const sql = 'SELECT id, username, bio, wechat_id, avatar_url, created_at FROM users WHERE id = ?';
+            const sql = 'SELECT id, username, bio, wechat_id, phone, avatar_url, created_at FROM users WHERE id = ?';
             const users = await db.query(sql, [id]);
             return users.length > 0 ? users[0] : null;
         } catch (error) {
@@ -244,6 +243,32 @@ class User {
             return users;
         } catch (error) {
             logger.error('获取用户列表失败', { error: error.message });
+            throw error;
+        }
+    }
+
+    static async findByPhone(phone) {
+        try {
+            const sql = `
+                SELECT id, username, phone, bio, wechat_id, avatar_url, created_at 
+                FROM users 
+                WHERE phone = ?
+            `;
+            const users = await db.query(sql, [phone]);
+            return users.length > 0 ? users[0] : null;
+        } catch (error) {
+            logger.error('通过手机号查找用户失败', { error: error.message, phone });
+            throw error;
+        }
+    }
+
+    static async updatePhone(id, phone) {
+        try {
+            const sql = 'UPDATE users SET phone = ? WHERE id = ?';
+            const affectedRows = await db.execute(sql, [phone, id]);
+            return affectedRows > 0;
+        } catch (error) {
+            logger.error('更新手机号失败', { error: error.message, userId: id });
             throw error;
         }
     }
