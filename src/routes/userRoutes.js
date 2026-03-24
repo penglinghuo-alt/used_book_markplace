@@ -59,16 +59,17 @@ router.post('/verify-captcha', (req, res) => {
 router.get('/stats', async (req, res) => {
     try {
         const db = require('../config/database');
-        const [userResult] = await db.query('SELECT COUNT(*) as count FROM users');
-        const [bookResult] = await db.query("SELECT COUNT(*) as count FROM books WHERE status = 'active'");
+        const userResult = await db.query('SELECT COUNT(*) as count FROM users');
+        const bookResult = await db.query("SELECT COUNT(*) as count FROM books WHERE status = 'active'");
         res.json({
             success: true,
             data: {
-                userCount: userResult[0].count,
-                bookCount: bookResult[0].count
+                userCount: userResult[0]?.count || 0,
+                bookCount: bookResult[0]?.count || 0
             }
         });
     } catch (error) {
+        console.error('获取统计数据失败:', error);
         res.status(500).json({
             success: false,
             message: '获取统计数据失败'
