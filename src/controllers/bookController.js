@@ -25,11 +25,12 @@ const logger = require('../config/logger');
  *   "author": "作者",
  *   "price": 29.99,
  *   "description": "新旧程度描述",
- *   "image_url": "图片URL"
+ *   "image_url": "图片URL",
+ *   "category": "分类"
  * }
  */
 const createBook = asyncHandler(async (req, res) => {
-    const { title, author, price, description, image_url } = req.body;
+    const { title, author, price, description, image_url, category } = req.body;
     
     const book = await Book.create({
         seller_id: req.user.id,
@@ -37,7 +38,8 @@ const createBook = asyncHandler(async (req, res) => {
         author,
         price,
         description,
-        image_url: image_url || null
+        image_url: image_url || null,
+        category: category || 'other'
     });
     
     logger.info(`书籍发布成功`, { bookId: book.id, sellerId: req.user.id });

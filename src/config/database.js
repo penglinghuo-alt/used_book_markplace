@@ -127,10 +127,12 @@ async function initializeDatabase() {
             price DECIMAL(10, 2) NOT NULL COMMENT '价格',
             description TEXT COMMENT '描述/新旧程度',
             image_url VARCHAR(500) DEFAULT NULL COMMENT '书籍图片URL',
+            category ENUM('teaching', 'textbook', 'notebook', 'other') DEFAULT 'other' COMMENT '分类: teaching=教辅, textbook=课本, notebook=笔记本, other=其他',
             status ENUM('active', 'sold') DEFAULT 'active' COMMENT '状态: active=挂售中, sold=已售出',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '挂售时间',
             INDEX idx_seller_id (seller_id),
             INDEX idx_status (status),
+            INDEX idx_category (category),
             FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='书籍/挂售表'
     `;
@@ -204,6 +206,15 @@ async function initializeDatabase() {
             }
         }
         
+        try {
+            await query("ALTER TABLE books ADD COLUMN category ENUM('teaching', 'textbook', 'notebook', 'other') DEFAULT 'other' COMMENT '分类' AFTER image_url");
+            console.log('✅ books 表 category 列添加成功');
+        } catch (e) {
+            if (e.code !== 'ER_DUP_FIELDNAME') {
+                console.log('ℹ️ category 列已存在或无需添加');
+            }
+        }
+        
         await query(createMessageTable);
         console.log('✅ messages 表创建成功');
         
@@ -218,6 +229,26 @@ async function initializeDatabase() {
         
         await query(createTransactionTable);
         console.log('✅ transactions 表创建成功');
+        
+        const createFriendshipTable = `
+            CREATE TABLE IF NOT EXISTS friendships (
+                id INT AUTO_INCREMENT PRIMARY KEY COMMENT '好友关系ID',
+                user_id INT NOT NULL COMMENT '用户ID',
+                friend_id INT NOT NULL COMMENT '好友用户ID',
+                status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending' COMMENT '状态: pending=待处理, accepted=已同意, rejected=已拒绝',
+                message VARCHAR(255) DEFAULT '' COMMENT '申请留言',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '申请时间',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                INDEX idx_user_id (user_id),
+                INDEX idx_friend_id (friend_id),
+                INDEX idx_status (status),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='好友关系表'
+        `;
+        
+        await query(createFriendshipTable);
+        console.log('✅ friendships 表创建成功');
         
         console.log('🎉 数据库初始化完成!');
     } catch (error) {

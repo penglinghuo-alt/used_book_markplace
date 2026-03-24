@@ -11,6 +11,7 @@ const userRoutes = require('./userRoutes');
 const bookRoutes = require('./bookRoutes');
 const messageRoutes = require('./messageRoutes');
 const transactionRoutes = require('./transactionRoutes');
+const friendshipRoutes = require('./friendshipRoutes');
 
 // ==================== 路由挂载 ====================
 
@@ -73,6 +74,22 @@ router.use('/messages', messageRoutes);
  * - GET    /api/transactions/:id          - 获取交易详情
  */
 router.use('/transactions', transactionRoutes);
+
+/**
+ * 好友相关路由
+ * 前缀: /api/friendships
+ * 
+ * 接口列表:
+ * - POST   /api/friendships                    - 发送好友申请
+ * - GET    /api/friendships                    - 获取好友列表
+ * - GET    /api/friendships/requests          - 获取待处理申请
+ * - GET    /api/friendships/requests/count    - 获取申请数量
+ * - POST   /api/friendships/:friendId/accept  - 同意申请
+ * - POST   /api/friendships/:friendId/reject   - 拒绝申请
+ * - GET    /api/friendships/:friendId/status  - 检查好友状态
+ * - DELETE /api/friendships/:friendId         - 删除好友
+ */
+router.use('/friendships', friendshipRoutes);
 
 // ==================== 健康检查 ====================
 
