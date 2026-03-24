@@ -52,6 +52,31 @@ router.post('/verify-captcha', (req, res) => {
 });
 
 /**
+ * @route   GET /api/users/stats
+ * @desc    获取用户统计数据
+ * @access  公开
+ */
+router.get('/stats', async (req, res) => {
+    try {
+        const db = require('../config/database');
+        const [userResult] = await db.query('SELECT COUNT(*) as count FROM users');
+        const [bookResult] = await db.query("SELECT COUNT(*) as count FROM books WHERE status = 'active'");
+        res.json({
+            success: true,
+            data: {
+                userCount: userResult[0].count,
+                bookCount: bookResult[0].count
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '获取统计数据失败'
+        });
+    }
+});
+
+/**
  * @route   POST /api/users/send-sms
  * @desc    发送短信验证码
  * @access  公开

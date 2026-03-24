@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { bookApi } from '@/api'
+import { bookApi, userApi } from '@/api'
 import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -14,20 +14,39 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const books = ref([])
+const stats = ref({ userCount: 0, bookCount: 0 })
 const loading = ref(false)
 const refreshing = ref(false)
 const page = ref(1)
 const hasMore = ref(true)
 const searchQuery = ref('')
 const selectedStatus = ref('all')
+const selectedCategory = ref('all')
+
+const categories = [
+  { value: 'all', label: '全部' },
+  { value: 'teaching', label: '教辅' },
+  { value: 'textbook', label: '课本' },
+  { value: 'notebook', label: '笔记本' },
+  { value: 'other', label: '其他' }
+]
 
 const filteredBooks = computed(() => {
-  if (!searchQuery.value) return books.value
-  const query = searchQuery.value.toLowerCase()
-  return books.value.filter(book => 
-    book.title.toLowerCase().includes(query) ||
-    book.author.toLowerCase().includes(query)
-  )
+  let result = books.value
+  
+  if (selectedCategory.value !== 'all') {
+    result = result.filter(book => book.category === selectedCategory.value)
+  }
+  
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(book => 
+      book.title.toLowerCase().includes(query) ||
+      book.author.toLowerCase().includes(query)
+    )
+  }
+  
+  return result
 })
 
 async function fetchBooks(reset = false) {
@@ -76,8 +95,23 @@ function formatTime(time) {
   return dayjs(time).fromNow()
 }
 
+function getCategoryLabel(category) {
+  const cat = categories.find(c => c.value === category)
+  return cat ? cat.label : ''
+}
+
+async function fetchStats() {
+  try {
+    const res = await userApi.getStats()
+    stats.value = res
+  } catch (e) {
+    console.error('获取统计数据失败', e)
+  }
+}
+
 onMounted(() => {
   fetchBooks(true)
+  fetchStats()
   window.addEventListener('scroll', handleScroll)
 })
 </script>
@@ -97,6 +131,17 @@ onMounted(() => {
             class="search-input"
           />
         </div>
+        <div class="category-filter">
+          <button 
+            v-for="cat in categories" 
+            :key="cat.value"
+            class="category-btn"
+            :class="{ active: selectedCategory === cat.value }"
+            @click="selectedCategory = cat.value"
+          >
+            {{ cat.label }}
+          </button>
+        </div>
       </div>
       <div class="hero-decoration">
         <div class="deco-book">📚</div>
@@ -110,13 +155,13 @@ onMounted(() => {
         <div class="stats-bar">
           <div class="stat-item">
             <span class="stat-icon">📚</span>
-            <span class="stat-value">{{ books.length }}+</span>
+            <span class="stat-value">{{ stats.bookCount || books.length }}+</span>
             <span class="stat-label">在售书籍</span>
           </div>
           <div class="stat-item">
             <span class="stat-icon">👥</span>
-            <span class="stat-value">100+</span>
-            <span class="stat-label">活跃卖家</span>
+            <span class="stat-value">{{ stats.userCount || 0 }}</span>
+            <span class="stat-label">注册用户</span>
           </div>
           <div class="stat-item">
             <span class="stat-icon">✨</span>
@@ -157,6 +202,9 @@ onMounted(() => {
                 <div v-else class="book-placeholder">
                   <span class="book-emoji">📖</span>
                 </div>
+                <span v-if="book.category && book.category !== 'other'" class="category-tag">
+                  {{ getCategoryLabel(book.category) }}
+                </span>
                 <div class="book-price">¥{{ formatPrice(book.price) }}</div>
               </div>
               <div class="book-info">
@@ -262,6 +310,34 @@ onMounted(() => {
 
 .search-input::placeholder {
   color: #9ca3af;
+}
+
+.category-filter {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.category-btn {
+  padding: 8px 20px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-weight: 500;
+  transition: all var(--transition);
+  border: 1px solid transparent;
+}
+
+.category-btn:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.category-btn.active {
+  background: white;
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .hero-decoration {
@@ -447,6 +523,18 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.category-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--primary);
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
 }
 
 .book-price {

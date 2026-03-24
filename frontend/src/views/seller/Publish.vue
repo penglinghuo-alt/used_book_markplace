@@ -10,8 +10,16 @@ const form = ref({
   author: '',
   price: '',
   description: '',
-  imageUrl: ''
+  imageUrl: '',
+  category: 'other'
 })
+
+const categories = [
+  { value: 'teaching', label: '教辅' },
+  { value: 'textbook', label: '课本' },
+  { value: 'notebook', label: '笔记本' },
+  { value: 'other', label: '其他' }
+]
 
 const imageFile = ref(null)
 const imagePreview = ref('')
@@ -203,6 +211,25 @@ async function handleSubmit() {
                   <div class="upload-text">点击上传书籍图片</div>
                   <div class="upload-hint">支持 JPG、PNG、GIF、WebP 格式，最大 5MB</div>
                 </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <span class="label-icon">📑</span>
+                书籍分类
+              </label>
+              <div class="category-select">
+                <button 
+                  v-for="cat in categories" 
+                  :key="cat.value"
+                  type="button"
+                  class="category-option"
+                  :class="{ active: form.category === cat.value }"
+                  @click="form.category = cat.value"
+                >
+                  {{ cat.label }}
+                </button>
               </div>
             </div>
 
@@ -542,6 +569,33 @@ async function handleSubmit() {
 .upload-hint {
   font-size: 0.75rem;
   color: var(--text-tertiary);
+}
+
+.category-select {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.category-option {
+  padding: 10px 20px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.category-option:hover {
+  border-color: var(--primary);
+}
+
+.category-option.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
 }
 
 @media (max-width: 768px) {

@@ -13,6 +13,9 @@ export const userApi = {
   verifyCaptcha(token, input) {
     return api.post('/users/verify-captcha', { token, userInput: input })
   },
+  getStats() {
+    return api.get('/users/stats')
+  },
   sendSms(phone) {
     return api.post('/users/send-sms', { phone })
   },
