@@ -101,7 +101,8 @@ async function handleSubmit() {
       author: form.value.author.trim(),
       price: Number(form.value.price),
       description: form.value.description.trim(),
-      image_url: imageUrl || null
+      image_url: imageUrl || null,
+      category: form.value.category
     })
     alert('发布成功！')
     router.push('/seller')
