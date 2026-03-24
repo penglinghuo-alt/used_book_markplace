@@ -3,7 +3,7 @@ function securityHeaders(req, res, next) {
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://120.24.189.110 http://120.24.189.110; frame-ancestors 'none'");
     res.removeHeader('X-Powered-By');
     next();
 }
@@ -19,13 +19,8 @@ function botDetector(req, res, next) {
     
     const hasBotPattern = botPatterns.some(pattern => pattern.test(userAgent));
     
-    const hasNoUserAgent = !userAgent || userAgent.length < 10;
-    const hasSuspiciousPatterns = req.headers['sec-fetch-dest'] === 'document' && !userAgent;
-    
-    if ((hasBotPattern || hasNoUserAgent) && req.method === 'GET') {
-        if (hasBotPattern && userAgent.match(/bot|crawler|spider/i)) {
-            res.setHeader('X-Bot-Detected', 'true');
-        }
+    if (hasBotPattern && req.method === 'GET') {
+        res.setHeader('X-Bot-Detected', 'true');
     }
     
     next();
@@ -56,4 +51,4 @@ function corsOptions(req, res, next) {
     next();
 }
 
-module.exports = { securityHeaders, corsOptions };
+module.exports = { securityHeaders, botDetector, corsOptions };
