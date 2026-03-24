@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const { auth } = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 const { generateCaptcha, validateCaptcha } = require('../utils/captcha');
 const { sendSmsCode, verifySmsCode } = require('../utils/sms');
 const {
