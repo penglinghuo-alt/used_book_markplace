@@ -18,7 +18,7 @@ async function fetchFollowers() {
   loading.value = true
   try {
     const res = await followApi.getFollowers()
-    followers.value = res.data || []
+    followers.value = res || []
   } catch (e) {
     console.error('获取粉丝列表失败', e)
   } finally {

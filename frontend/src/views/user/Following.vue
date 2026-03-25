@@ -18,7 +18,7 @@ async function fetchFollowing() {
   loading.value = true
   try {
     const res = await followApi.getFollowing()
-    following.value = res.data || []
+    following.value = res || []
   } catch (e) {
     console.error('获取关注列表失败', e)
   } finally {
