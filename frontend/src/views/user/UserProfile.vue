@@ -50,7 +50,7 @@ async function checkFriendStatus() {
 async function fetchFollowCounts() {
   try {
     const res = await followApi.getCounts(route.params.id)
-    followCounts.value = res.data || { following: 0, followers: 0 }
+    followCounts.value = res || { following: 0, followers: 0 }
   } catch (e) {
     console.error('获取关注统计失败', e)
   }
@@ -59,7 +59,7 @@ async function fetchFollowCounts() {
 async function checkFollowStatus() {
   try {
     const res = await followApi.checkStatus(route.params.id)
-    isFollowing.value = res.data?.isFollowing === true
+    isFollowing.value = res?.isFollowing === true
   } catch (e) {
     console.error('检查关注状态失败', e)
     isFollowing.value = false
