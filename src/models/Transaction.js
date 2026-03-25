@@ -278,36 +278,39 @@ class Transaction {
      */
     static async getStatistics(userId = null) {
         try {
-            let sql, params = [];
+            let soldSql, soldParams, boughtSql, boughtParams;
             
             if (userId) {
-                // 指定用户的销售统计
-                sql = `
-                    SELECT 
-                        COUNT(*) as total_transactions,
-                        SUM(b.price) as total_revenue,
-                        COUNT(DISTINCT t.seller_id) as sellers_count,
-                        COUNT(DISTINCT t.buyer_id) as buyers_count
+                soldSql = `
+                    SELECT COUNT(*) as count
                     FROM transactions t
-                    JOIN books b ON t.book_id = b.id
                     WHERE t.seller_id = ?
                 `;
-                params = [userId];
-            } else {
-                // 全局统计
-                sql = `
-                    SELECT 
-                        COUNT(*) as total_transactions,
-                        SUM(b.price) as total_revenue,
-                        COUNT(DISTINCT t.seller_id) as sellers_count,
-                        COUNT(DISTINCT t.buyer_id) as buyers_count
+                soldParams = [userId];
+                
+                boughtSql = `
+                    SELECT COUNT(*) as count
                     FROM transactions t
-                    JOIN books b ON t.book_id = b.id
+                    WHERE t.buyer_id = ?
                 `;
+                boughtParams = [userId];
+            } else {
+                soldSql = `SELECT COUNT(*) as count FROM transactions`;
+                soldParams = [];
+                
+                boughtSql = `SELECT COUNT(*) as count FROM transactions`;
+                boughtParams = [];
             }
             
-            const result = await db.query(sql, params);
-            return result[0];
+            const [soldResult, boughtResult] = await Promise.all([
+                db.query(soldSql, soldParams),
+                db.query(boughtSql, boughtParams)
+            ]);
+            
+            return {
+                soldCount: soldResult[0]?.count || 0,
+                boughtCount: boughtResult[0]?.count || 0
+            };
         } catch (error) {
             logger.error('获取销售统计失败', { error: error.message });
             throw error;

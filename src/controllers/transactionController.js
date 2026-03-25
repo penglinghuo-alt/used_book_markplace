@@ -173,14 +173,7 @@ const getMyStats = asyncHandler(async (req, res) => {
     
     res.status(200).json({
         success: true,
-        data: {
-            stats: {
-                total_transactions: parseInt(stats.total_transactions) || 0,
-                total_revenue: parseFloat(stats.total_revenue) || 0,
-                sellers_count: parseInt(stats.sellers_count) || 0,
-                buyers_count: parseInt(stats.buyers_count) || 0
-            }
-        }
+        data: { stats }
     });
 });
 
