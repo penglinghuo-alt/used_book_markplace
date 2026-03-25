@@ -102,6 +102,12 @@ function isMyMessage(msg) {
   return msg.sender_id === userStore.user?.id
 }
 
+function goToUserProfile() {
+  if (otherUser.value?.id) {
+    router.push(`/user/${otherUser.value.id}`)
+  }
+}
+
 let pollInterval = null
 
 onMounted(async () => {
@@ -126,8 +132,10 @@ onUnmounted(() => {
         <span>←</span>
       </button>
       <div class="header-info">
-        <div class="user-info">
-          <span class="avatar">{{ otherUser?.username?.charAt(0).toUpperCase() || '?' }}</span>
+        <div class="user-info" @click="goToUserProfile">
+          <div class="avatar">
+            {{ otherUser?.username?.charAt(0).toUpperCase() || '?' }}
+          </div>
           <span class="username">{{ otherUser?.username || '加载中...' }}</span>
         </div>
       </div>
@@ -235,6 +243,12 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.user-info:hover {
+  opacity: 0.8;
 }
 
 .avatar {
@@ -248,6 +262,11 @@ onUnmounted(() => {
   justify-content: center;
   font-weight: 700;
   font-size: 0.875rem;
+  transition: transform 0.2s;
+}
+
+.user-info:hover .avatar {
+  transform: scale(1.1);
 }
 
 .username {
