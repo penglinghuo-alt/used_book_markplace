@@ -23,9 +23,10 @@ async function fetchFriends() {
   loading.value = true
   try {
     const res = await friendshipApi.getFriends()
-    friends.value = Array.isArray(res) ? res : (res?.friends || [])
+    friends.value = Array.isArray(res) ? res : (Array.isArray(res?.friends) ? res.friends : [])
   } catch (e) {
     console.error('获取好友列表失败', e)
+    friends.value = []
   } finally {
     loading.value = false
   }
@@ -35,15 +36,19 @@ async function fetchRequests() {
   loading.value = true
   try {
     const res = await friendshipApi.getPendingRequests()
-    requests.value = Array.isArray(res) ? res : (res?.requests || [])
+    requests.value = Array.isArray(res) ? res : (Array.isArray(res?.requests) ? res.requests : [])
   } catch (e) {
     console.error('获取好友申请失败', e)
+    requests.value = []
   } finally {
     loading.value = false
   }
 }
 
 const filteredFriends = computed(() => {
+  if (!Array.isArray(friends.value)) {
+    return []
+  }
   if (!searchQuery.value.trim()) {
     return friends.value
   }
@@ -55,7 +60,11 @@ const filteredFriends = computed(() => {
 
 const groupedFriends = computed(() => {
   const groups = {}
-  filteredFriends.value.forEach(friend => {
+  const arr = filteredFriends.value
+  if (!Array.isArray(arr)) {
+    return groups
+  }
+  arr.forEach(friend => {
     const letter = (friend.friend_name?.charAt(0) || '#').toUpperCase()
     if (!groups[letter]) {
       groups[letter] = []
