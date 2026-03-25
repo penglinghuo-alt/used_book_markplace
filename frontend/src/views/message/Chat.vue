@@ -57,8 +57,9 @@ async function fetchMessages() {
   try {
     const res = await messageApi.getConversation(otherUserId.value)
     messages.value = res.messages || res || []
-    scrollToBottom()
     messageStore.markAsRead(otherUserId.value)
+    await nextTick()
+    scrollToBottom()
   } catch (error) {
     console.error('获取消息失败:', error)
   } finally {
