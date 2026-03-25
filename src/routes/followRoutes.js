@@ -117,6 +117,7 @@ router.post('/:userId', auth, async (req, res) => {
             data: result
         });
     } catch (error) {
+        console.error('关注失败:', error);
         res.status(400).json({
             success: false,
             message: error.message
