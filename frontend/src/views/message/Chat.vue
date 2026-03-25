@@ -14,8 +14,15 @@ const router = useRouter()
 const userStore = useUserStore()
 const messageStore = useMessageStore()
 
-const otherUserId = computed(() => Number(route.params.userId))
-const bookId = computed(() => route.query.bookId ? Number(route.query.bookId) : null)
+const otherUserId = computed(() => {
+  const id = Number(route.params.userId)
+  return isNaN(id) ? null : id
+})
+const bookId = computed(() => {
+  if (!route.query.bookId) return null
+  const id = Number(route.query.bookId)
+  return isNaN(id) ? null : id
+})
 
 const otherUser = ref(null)
 const book = ref(null)
@@ -26,6 +33,7 @@ const sending = ref(false)
 const messagesContainer = ref(null)
 
 async function fetchOtherUser() {
+  if (!otherUserId.value) return
   try {
     const res = await userApi.getUserById(otherUserId.value)
     otherUser.value = res.user

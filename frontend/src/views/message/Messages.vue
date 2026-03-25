@@ -42,6 +42,10 @@ async function fetchConversations() {
 
 function goToChat(conversation) {
   const userId = conversation.other_user_id || conversation.otherUser?.id
+  if (!userId) {
+    console.error('无法获取用户ID', conversation)
+    return
+  }
   router.push(`/messages/chat/${userId}`)
 }
 
