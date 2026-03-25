@@ -24,24 +24,6 @@ class Follow {
             throw new Error('你已经关注过该用户');
         }
 
-        const sql = `
-            INSERT INTO follows (follower_id, following_id)
-            VALUES (?, ?)
-        `;
-        const id = await db.insert(sql, [followerId, followingId]);
-
-        return {
-            id,
-            follower_id: followerId,
-            following_id: followingId
-        };
-    }
-
-        const existing = await this.findRelation(followerId, followingId);
-        if (existing) {
-            throw new Error('你已经关注过该用户');
-        }
-
         try {
             const sql = `
                 INSERT INTO follows (follower_id, following_id)
