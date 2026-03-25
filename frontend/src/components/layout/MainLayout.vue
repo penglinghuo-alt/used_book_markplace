@@ -302,6 +302,7 @@ onMounted(() => {
 .tab-icon {
   font-size: 24px;
   transition: transform var(--transition);
+  position: relative;
 }
 
 .tab-label {
