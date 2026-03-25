@@ -59,9 +59,10 @@ async function fetchFollowCounts() {
 async function checkFollowStatus() {
   try {
     const res = await followApi.checkStatus(route.params.id)
-    isFollowing.value = res.data?.isFollowing || false
+    isFollowing.value = res.data?.isFollowing === true
   } catch (e) {
     console.error('检查关注状态失败', e)
+    isFollowing.value = false
   }
 }
 
@@ -81,7 +82,12 @@ async function handleFollow() {
       followCounts.value.followers++
     }
   } catch (e) {
-    alert(e.message || '操作失败')
+    if (e.message?.includes('已经关注')) {
+      isFollowing.value = true
+      alert('你已经关注了该用户')
+    } else {
+      alert(e.message || '操作失败')
+    }
   }
 }
 
