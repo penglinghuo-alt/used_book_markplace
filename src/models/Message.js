@@ -188,6 +188,7 @@ class Message {
                         ELSE m.sender_id 
                     END as other_user_id,
                     u.username as other_user_name,
+                    u.avatar_url as other_user_avatar,
                     m.content as last_message,
                     m.sent_at as last_message_time,
                     (SELECT COUNT(*) FROM messages 

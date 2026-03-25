@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { messageApi, userApi } from '@/api'
+import { messageApi } from '@/api'
 import { useUserStore } from '@/stores/user'
 import { useMessageStore } from '@/stores/message'
 import dayjs from 'dayjs'
@@ -21,18 +21,6 @@ async function fetchConversations() {
   try {
     const res = await messageApi.getConversations()
     conversations.value = res.conversations || res || []
-    
-    for (const conv of conversations.value) {
-      try {
-        const userId = conv.other_user_id
-        if (userId) {
-          const userRes = await userApi.getUserById(userId)
-          conv.otherUser = userRes.user
-        }
-      } catch (e) {
-        console.error('获取用户失败', e)
-      }
-    }
   } catch (error) {
     console.error('获取会话列表失败:', error)
   } finally {
@@ -105,7 +93,8 @@ onMounted(() => {
             @click="goToChat(conv)"
           >
             <div class="avatar">
-              {{ conv.otherUser?.username?.charAt(0).toUpperCase() || '?' }}
+              <img v-if="conv.other_user_avatar" :src="conv.other_user_avatar" :alt="conv.other_user_name" class="avatar-img" />
+              <span v-else>{{ conv.other_user_name?.charAt(0).toUpperCase() || '?' }}</span>
             </div>
             <div class="conv-info">
               <div class="conv-header">
@@ -255,6 +244,13 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 700;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .conv-info {
