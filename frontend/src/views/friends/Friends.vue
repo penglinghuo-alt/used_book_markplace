@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { friendshipApi } from '@/api'
 import { useUserStore } from '@/stores/user'
@@ -17,12 +17,13 @@ const activeTab = ref('friends')
 const friends = ref([])
 const requests = ref([])
 const loading = ref(false)
+const searchQuery = ref('')
 
 async function fetchFriends() {
   loading.value = true
   try {
     const res = await friendshipApi.getFriends()
-    friends.value = res.friends || []
+    friends.value = res?.friends || []
   } catch (e) {
     console.error('获取好友列表失败', e)
   } finally {
@@ -34,12 +35,40 @@ async function fetchRequests() {
   loading.value = true
   try {
     const res = await friendshipApi.getPendingRequests()
-    requests.value = res.requests || []
+    requests.value = res?.requests || []
   } catch (e) {
     console.error('获取好友申请失败', e)
   } finally {
     loading.value = false
   }
+}
+
+const filteredFriends = computed(() => {
+  if (!Array.isArray(friends.value)) return []
+  if (!searchQuery.value.trim()) return friends.value
+  const query = searchQuery.value.toLowerCase()
+  return friends.value.filter(f => f.friend_name?.toLowerCase().includes(query))
+})
+
+const groupedFriends = computed(() => {
+  const groups = {}
+  const arr = filteredFriends.value
+  if (!Array.isArray(arr)) return groups
+  arr.forEach(friend => {
+    const letter = (friend.friend_name?.charAt(0) || '#').toUpperCase()
+    if (!groups[letter]) groups[letter] = []
+    groups[letter].push(friend)
+  })
+  return groups
+})
+
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#'.split('')
+const currentLetter = ref('')
+
+function scrollToLetter(letter) {
+  currentLetter.value = letter
+  const el = document.querySelector(`[data-letter="${letter}"]`)
+  if (el) el.scrollIntoView({ behavior: 'smooth' })
 }
 
 async function handleAccept(friendId) {
@@ -117,30 +146,34 @@ onMounted(() => {
 
     <div class="content">
       <div v-if="activeTab === 'friends'">
+        <div class="search-bar">
+          <input v-model="searchQuery" type="text" class="search-input" placeholder="搜索好友" />
+        </div>
         <div v-if="loading" class="loading">加载中...</div>
-        <div v-else-if="friends.length === 0" class="empty">
+        <div v-else-if="filteredFriends.length === 0" class="empty">
           <div class="empty-icon">👥</div>
-          <p>还没有好友</p>
-          <p class="hint">去市场找找志同道合的书友吧</p>
+          <p>{{ searchQuery ? '没有找到好友' : '还没有好友' }}</p>
+          <p v-if="!searchQuery" class="hint">去市场找找志同道合的书友吧</p>
         </div>
         <div v-else class="friend-list">
-          <div 
-            v-for="friend in friends" 
-            :key="friend.id"
-            class="friend-item"
-            @click="goToChat(friend)"
-          >
-            <div class="avatar">
-              <img v-if="friend.friend_avatar" :src="friend.friend_avatar" :alt="friend.friend_name" class="avatar-img" />
-              <span v-else>{{ friend.friend_name?.charAt(0).toUpperCase() || '?' }}</span>
+          <div v-for="(letterFriends, letter) in groupedFriends" :key="letter" :data-letter="letter" class="friend-group">
+            <div class="letter-header">{{ letter }}</div>
+            <div v-for="friend in letterFriends" :key="friend.id" class="friend-item" @click="goToChat(friend)">
+              <div class="avatar">
+                <img v-if="friend.friend_avatar" :src="friend.friend_avatar" :alt="friend.friend_name" class="avatar-img" />
+                <span v-else>{{ friend.friend_name?.charAt(0).toUpperCase() || '?' }}</span>
+              </div>
+              <div class="friend-info">
+                <div class="friend-name">{{ friend.friend_name }}</div>
+                <div class="friend-time">{{ formatTime(friend.updated_at) }}</div>
+              </div>
+              <button class="chat-btn" @click.stop="goToChat(friend)">发消息</button>
+              <button class="delete-btn" @click.stop="handleDeleteFriend(friend.friend_id)">删除</button>
             </div>
-            <div class="friend-info">
-              <div class="friend-name">{{ friend.friend_name }}</div>
-              <div class="friend-time">{{ formatTime(friend.updated_at) }}</div>
-            </div>
-            <button class="chat-btn" @click.stop="goToChat(friend)">发消息</button>
-            <button class="delete-btn" @click.stop="handleDeleteFriend(friend.friend_id)">删除</button>
           </div>
+        </div>
+        <div class="alphabet-sidebar" v-if="!searchQuery">
+          <span v-for="letter in alphabet" :key="letter" :class="{ active: currentLetter === letter }" @touchstart.prevent="scrollToLetter(letter)" @click="scrollToLetter(letter)">{{ letter }}</span>
         </div>
       </div>
 
@@ -258,6 +291,64 @@ onMounted(() => {
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
+  padding-right: 36px;
+}
+
+.search-bar {
+  margin-bottom: 16px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.letter-header {
+  padding: 8px 0;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.friend-group {
+  margin-bottom: 8px;
+}
+
+.alphabet-sidebar {
+  position: fixed;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  font-size: 0.625rem;
+  font-weight: 600;
+  z-index: 100;
+  user-select: none;
+}
+
+.alphabet-sidebar span {
+  padding: 1px 2px;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.alphabet-sidebar span.active {
+  color: #ef4444;
 }
 
 .loading, .empty {
