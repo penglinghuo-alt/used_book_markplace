@@ -377,4 +377,42 @@ router.post(
     userController.uploadAvatar
 );
 
+/**
+ * @route   DELETE /api/users/:id
+ * @desc    删除用户
+ * @access  需要认证
+ */
+router.delete(
+    '/:id',
+    auth,
+    validate(idParamValidation),
+    async (req, res) => {
+        try {
+            const userId = parseInt(req.params.id);
+            const User = require('../models/User');
+            
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: '用户不存在'
+                });
+            }
+            
+            await User.delete(userId);
+            
+            res.json({
+                success: true,
+                message: '用户删除成功'
+            });
+        } catch (error) {
+            logger.error('删除用户失败', { error: error.message });
+            res.status(500).json({
+                success: false,
+                message: '删除用户失败'
+            });
+        }
+    }
+);
+
 module.exports = router;

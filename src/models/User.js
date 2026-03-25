@@ -272,6 +272,17 @@ class User {
             throw error;
         }
     }
+
+    static async delete(id) {
+        try {
+            const sql = 'DELETE FROM users WHERE id = ?';
+            const affectedRows = await db.execute(sql, [id]);
+            return affectedRows > 0;
+        } catch (error) {
+            logger.error('删除用户失败', { error: error.message, userId: id });
+            throw error;
+        }
+    }
 }
 
 module.exports = User;
