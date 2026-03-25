@@ -81,7 +81,7 @@ class User {
      */
     static async findById(id) {
         try {
-            const sql = 'SELECT id, username, bio, wechat_id, phone, avatar_url, created_at FROM users WHERE id = ?';
+            const sql = 'SELECT id, username, password_hash, bio, wechat_id, phone, avatar_url, created_at FROM users WHERE id = ?';
             const users = await db.query(sql, [id]);
             return users.length > 0 ? users[0] : null;
         } catch (error) {
