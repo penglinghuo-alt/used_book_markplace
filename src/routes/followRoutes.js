@@ -14,7 +14,7 @@ const { auth } = require('../middleware/auth');
  */
 router.get('/following', auth, async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user.id;
         const list = await Follow.getFollowing(userId);
         
         res.json({
@@ -35,7 +35,7 @@ router.get('/following', auth, async (req, res) => {
  */
 router.get('/followers', auth, async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user.id;
         const list = await Follow.getFollowers(userId);
         
         res.json({
@@ -57,6 +57,12 @@ router.get('/followers', auth, async (req, res) => {
 router.get('/counts/:userId', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
+        if (isNaN(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: '无效的用户ID'
+            });
+        }
         const counts = await Follow.getCounts(userId);
         
         res.json({
@@ -77,7 +83,7 @@ router.get('/counts/:userId', async (req, res) => {
  */
 router.get('/status/:userId', auth, async (req, res) => {
     try {
-        const followerId = req.userId;
+        const followerId = req.user.id;
         const followingId = parseInt(req.params.userId);
         
         const isFollowing = await Follow.isFollowing(followerId, followingId);
@@ -100,7 +106,7 @@ router.get('/status/:userId', auth, async (req, res) => {
  */
 router.post('/:userId', auth, async (req, res) => {
     try {
-        const followerId = req.userId;
+        const followerId = req.user.id;
         const followingId = parseInt(req.params.userId);
 
         const result = await Follow.follow(followerId, followingId);
@@ -124,7 +130,7 @@ router.post('/:userId', auth, async (req, res) => {
  */
 router.delete('/:userId', auth, async (req, res) => {
     try {
-        const followerId = req.userId;
+        const followerId = req.user.id;
         const followingId = parseInt(req.params.userId);
 
         const result = await Follow.unfollow(followerId, followingId);

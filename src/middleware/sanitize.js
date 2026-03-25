@@ -50,13 +50,17 @@ function sanitizeString(str) {
 function validateContentType(req, res, next) {
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
         const contentType = req.headers['content-type'];
-        if (!contentType || !contentType.includes('application/json')) {
-            if (req.headers['content-type'] !== 'multipart/form-data' && 
-                req.headers['content-type'] !== 'application/x-www-form-urlencoded') {
-                return res.status(415).json({
-                    success: false,
-                    message: '不支持的Content-Type'
-                });
+        const hasBody = Object.keys(req.body || {}).length > 0;
+        
+        if (hasBody) {
+            if (!contentType || !contentType.includes('application/json')) {
+                if (req.headers['content-type'] !== 'multipart/form-data' && 
+                    req.headers['content-type'] !== 'application/x-www-form-urlencoded') {
+                    return res.status(415).json({
+                        success: false,
+                        message: '不支持的Content-Type'
+                    });
+                }
             }
         }
     }

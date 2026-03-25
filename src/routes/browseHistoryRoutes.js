@@ -14,7 +14,7 @@ const { auth } = require('../middleware/auth');
  */
 router.post('/:bookId', auth, async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user.id;
         const bookId = parseInt(req.params.bookId);
 
         const result = await BrowseHistory.addRecord(userId, bookId);
@@ -38,7 +38,7 @@ router.post('/:bookId', auth, async (req, res) => {
  */
 router.get('/', auth, async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user.id;
         const limit = parseInt(req.query.limit) || 50;
         
         const history = await BrowseHistory.getHistory(userId, limit);
@@ -61,7 +61,7 @@ router.get('/', auth, async (req, res) => {
  */
 router.get('/count', auth, async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user.id;
         const count = await BrowseHistory.getHistoryCount(userId);
         
         res.json({
@@ -82,7 +82,7 @@ router.get('/count', auth, async (req, res) => {
  */
 router.delete('/', auth, async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user.id;
         await BrowseHistory.clearHistory(userId);
         
         res.json({
@@ -103,7 +103,7 @@ router.delete('/', auth, async (req, res) => {
  */
 router.delete('/:bookId', auth, async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user.id;
         const bookId = parseInt(req.params.bookId);
         
         const result = await BrowseHistory.deleteRecord(userId, bookId);
