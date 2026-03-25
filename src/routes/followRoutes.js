@@ -9,53 +9,6 @@ const Follow = require('../models/Follow');
 const authMiddleware = require('../middleware/auth');
 
 /**
- * POST /api/follow/:userId
- * 关注用户
- */
-router.post('/:userId', authMiddleware, async (req, res) => {
-    try {
-        const followerId = req.userId;
-        const followingId = parseInt(req.params.userId);
-
-        const result = await Follow.follow(followerId, followingId);
-        
-        res.status(201).json({
-            success: true,
-            message: '关注成功',
-            data: result
-        });
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-/**
- * DELETE /api/follow/:userId
- * 取消关注
- */
-router.delete('/:userId', authMiddleware, async (req, res) => {
-    try {
-        const followerId = req.userId;
-        const followingId = parseInt(req.params.userId);
-
-        const result = await Follow.unfollow(followerId, followingId);
-        
-        res.json({
-            success: result,
-            message: result ? '取消关注成功' : '取消关注失败'
-        });
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-/**
  * GET /api/follow/following
  * 获取当前用户的关注列表
  */
@@ -135,6 +88,53 @@ router.get('/status/:userId', authMiddleware, async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/follow/:userId
+ * 关注用户
+ */
+router.post('/:userId', authMiddleware, async (req, res) => {
+    try {
+        const followerId = req.userId;
+        const followingId = parseInt(req.params.userId);
+
+        const result = await Follow.follow(followerId, followingId);
+        
+        res.status(201).json({
+            success: true,
+            message: '关注成功',
+            data: result
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
+ * DELETE /api/follow/:userId
+ * 取消关注
+ */
+router.delete('/:userId', authMiddleware, async (req, res) => {
+    try {
+        const followerId = req.userId;
+        const followingId = parseInt(req.params.userId);
+
+        const result = await Follow.unfollow(followerId, followingId);
+        
+        res.json({
+            success: result,
+            message: result ? '取消关注成功' : '取消关注失败'
+        });
+    } catch (error) {
+        res.status(400).json({
             success: false,
             message: error.message
         });
