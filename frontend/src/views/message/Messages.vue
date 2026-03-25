@@ -98,7 +98,7 @@ onMounted(() => {
             </div>
             <div class="conv-info">
               <div class="conv-header">
-                <span class="conv-name">{{ conv.otherUser?.username || '未知用户' }}</span>
+                <span class="conv-name">{{ conv.other_user_name || '未知用户' }}</span>
                 <span class="conv-time">{{ formatTime(conv.last_message_time) }}</span>
               </div>
               <p class="conv-preview">

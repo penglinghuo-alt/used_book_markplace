@@ -131,7 +131,8 @@ onMounted(() => {
             @click="goToChat(friend)"
           >
             <div class="avatar">
-              {{ friend.friend_name?.charAt(0).toUpperCase() || '?' }}
+              <img v-if="friend.friend_avatar" :src="friend.friend_avatar" :alt="friend.friend_name" class="avatar-img" />
+              <span v-else>{{ friend.friend_name?.charAt(0).toUpperCase() || '?' }}</span>
             </div>
             <div class="friend-info">
               <div class="friend-name">{{ friend.friend_name }}</div>
@@ -306,6 +307,13 @@ onMounted(() => {
   font-weight: 600;
   font-size: 1.25rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .friend-info, .request-info {
