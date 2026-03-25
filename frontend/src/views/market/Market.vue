@@ -120,11 +120,30 @@ onMounted(() => {
   <div class="market-page">
     <div class="market-hero">
       <div class="hero-bg-animation"></div>
+      <div class="hero-decoration">
+        <div class="deco-book float-gentle">📚</div>
+        <div class="deco-book float-gentle" style="animation-delay: 0.5s">📖</div>
+      </div>
       <div class="hero-content">
-        <h1 class="hero-title">
-          <span class="text-gradient-animate">发现好书</span>
-        </h1>
-        <p class="hero-subtitle">在这里找到你想要的二手书籍</p>
+        <div class="hero-top">
+          <div class="hero-text">
+            <h1 class="hero-title">
+              <span class="text-gradient-animate">发现好书</span>
+            </h1>
+            <p class="hero-subtitle">在这里找到你想要的二手书籍</p>
+          </div>
+          <div class="quick-stats">
+            <div class="quick-stat">
+              <span class="stat-icon">📚</span>
+              <span class="stat-num">{{ stats.bookCount || books.length }}+</span>
+            </div>
+            <div class="quick-stat">
+              <span class="stat-icon">👥</span>
+              <span class="stat-num">{{ stats.userCount || 0 }}</span>
+            </div>
+          </div>
+        </div>
+        
         <div class="search-box glass neon-border">
           <span class="search-icon">🔍</span>
           <input 
@@ -133,7 +152,9 @@ onMounted(() => {
             placeholder="搜索书名或作者..."
             class="search-input"
           />
+          <span v-if="searchQuery" class="clear-search" @click="searchQuery = ''">×</span>
         </div>
+        
         <div class="category-filter">
           <button 
             v-for="cat in categories" 
@@ -146,37 +167,30 @@ onMounted(() => {
           </button>
         </div>
       </div>
-      <div class="hero-decoration">
-        <div class="deco-book float-gentle">📚</div>
-        <div class="deco-book float-gentle" style="animation-delay: 0.5s">📖</div>
-        <div class="deco-book float-gentle" style="animation-delay: 1s">📕</div>
-      </div>
     </div>
 
     <div class="market-content">
       <div class="container">
-        <div class="stats-bar">
-          <div class="stat-item">
-            <span class="stat-icon">📚</span>
-            <span class="stat-value">{{ stats.bookCount || books.length }}+</span>
-            <span class="stat-label">在售书籍</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-icon">👥</span>
-            <span class="stat-value">{{ stats.userCount || 0 }}</span>
-            <span class="stat-label">注册用户</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-icon">✨</span>
-            <span class="stat-value">优质</span>
-            <span class="stat-label">精选好书</span>
-          </div>
+        <div class="filter-indicator" :class="{ 'has-filter': selectedCategory !== 'all' || searchQuery }">
+          <span v-if="selectedCategory !== 'all'" class="filter-tag">
+            {{ getCategoryLabel(selectedCategory) }}
+            <span class="filter-remove" @click="selectedCategory = 'all'">×</span>
+          </span>
+          <span v-if="searchQuery" class="filter-tag">
+            搜索: "{{ searchQuery }}"
+            <span class="filter-remove" @click="searchQuery = ''">×</span>
+          </span>
+          <span class="result-count" v-if="filteredBooks.length > 0">
+            共 {{ filteredBooks.length }} 本书籍
+          </span>
         </div>
 
         <div class="books-section">
-          <h2 class="section-title">
+          <h2 class="section-title" v-if="filteredBooks.length > 0">
             <span class="title-icon">🔥</span>
-            最新上架
+            <span v-if="selectedCategory === 'all' && !searchQuery">最新上架</span>
+            <span v-else-if="searchQuery">搜索结果</span>
+            <span v-else>{{ getCategoryLabel(selectedCategory) }}书籍</span>
           </h2>
 
           <div v-if="loading && books.length === 0" class="loading-state">
@@ -187,8 +201,9 @@ onMounted(() => {
           <div v-else-if="filteredBooks.length === 0" class="empty-state">
             <div class="empty-icon">📭</div>
             <h3>暂无书籍</h3>
-            <p>还没有人发布书籍，成为第一个卖家吧！</p>
-            <router-link v-if="userStore.isLoggedIn" to="/seller/publish" class="empty-action">
+            <p v-if="searchQuery || selectedCategory !== 'all'">没有找到符合条件的书籍</p>
+            <p v-else>还没有人发布书籍，成为第一个卖家吧！</p>
+            <router-link v-if="userStore.isLoggedIn && selectedCategory === 'all' && !searchQuery" to="/seller/publish" class="empty-action">
               立即发布
             </router-link>
           </div>
@@ -241,13 +256,15 @@ onMounted(() => {
 <style scoped>
 .market-page {
   min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 .market-hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   background-size: 200% 200%;
   animation: gradient-flow 8s ease infinite;
-  padding: 80px 20px;
+  padding: 40px 20px 30px;
   position: relative;
   overflow: hidden;
 }
@@ -269,92 +286,136 @@ onMounted(() => {
 }
 
 .hero-content {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
-  text-align: center;
   position: relative;
   z-index: 2;
 }
 
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.hero-text {
+  text-align: left;
+}
+
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: white;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   text-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .hero-subtitle {
-  font-size: 1.25rem;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 32px;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.85);
 }
 
-.search-box {
-  max-width: 560px;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 60px;
-  padding: 8px 24px;
+.quick-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.quick-stat {
   display: flex;
   align-items: center;
-  gap: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  transition: all var(--transition);
+  gap: 6px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  padding: 8px 14px;
+  border-radius: 20px;
   border: 1px solid rgba(255,255,255,0.2);
 }
 
+.quick-stat .stat-icon {
+  font-size: 16px;
+}
+
+.quick-stat .stat-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+}
+
+.search-box {
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 50px;
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  transition: all var(--transition);
+  border: 1px solid rgba(255,255,255,0.2);
+  margin-bottom: 16px;
+}
+
 .search-box:focus-within {
-  transform: scale(1.02);
-  box-shadow: 0 15px 50px rgba(79, 70, 229, 0.3);
-  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.01);
+  box-shadow: 0 12px 40px rgba(79, 70, 229, 0.25);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .search-icon {
-  font-size: 20px;
-  opacity: 0.5;
+  font-size: 18px;
+  opacity: 0.6;
 }
 
 .search-input {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 16px;
-  padding: 12px 0;
+  font-size: 15px;
+  padding: 10px 0;
   background: transparent;
-}
-
-.dark .search-input {
-  color: var(--text-primary);
+  color: white;
 }
 
 .search-input::placeholder {
-  color: #9ca3af;
+  color: rgba(255,255,255,0.6);
+}
+
+.clear-search {
+  font-size: 20px;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  padding: 0 6px;
+  transition: color 0.2s;
+}
+
+.clear-search:hover {
+  color: white;
 }
 
 .category-filter {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
-  margin-top: 16px;
   flex-wrap: wrap;
 }
 
 .category-btn {
-  padding: 8px 20px;
+  padding: 6px 18px;
   border-radius: 20px;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.1);
   backdrop-filter: blur(10px);
   color: white;
   font-weight: 500;
+  font-size: 14px;
   transition: all var(--transition);
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.15);
 }
 
 .category-btn:hover {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.2);
   transform: translateY(-2px);
 }
 
@@ -367,138 +428,119 @@ onMounted(() => {
 
 .hero-decoration {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  right: 8%;
+  top: 30px;
+  right: 5%;
   display: flex;
-  gap: 30px;
-  opacity: 0.15;
+  gap: 20px;
+  opacity: 0.12;
 }
 
 .deco-book {
-  font-size: 100px;
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
-}
-
-.deco-book:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.deco-book:nth-child(3) {
-  animation-delay: 1s;
+  font-size: 60px;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-20px) rotate(5deg); }
-  75% { transform: translateY(-10px) rotate(-5deg); }
+  25% { transform: translateY(-15px) rotate(5deg); }
+  75% { transform: translateY(-8px) rotate(-5deg); }
 }
 
 .market-content {
-  padding: 40px 0;
-  margin-top: -20px;
+  padding: 24px 0;
+  margin-top: -10px;
 }
 
-.stats-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.stat-item {
-  background: var(--bg-card);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  text-align: center;
-  box-shadow: var(--shadow);
+.filter-indicator {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  transition: all var(--transition);
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
   border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
+  min-height: 48px;
+  transition: all 0.3s ease;
 }
 
-.stat-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-  transition: left 0.5s ease;
-}
-
-.stat-item:hover::before {
-  left: 0;
-}
-
-.stat-item:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-lg);
+.filter-indicator.has-filter {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(245, 158, 11, 0.05));
   border-color: var(--primary-light);
 }
 
-.stat-icon {
-  font-size: 32px;
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--primary);
+  color: white;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  animation: bounce-in 0.3s ease;
 }
 
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary);
+.filter-remove {
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
 }
 
-.stat-label {
-  font-size: 0.875rem;
+.filter-remove:hover {
+  opacity: 1;
+}
+
+.result-count {
+  margin-left: auto;
   color: var(--text-secondary);
+  font-size: 13px;
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 1.5rem;
+  gap: 10px;
+  font-size: 1.2rem;
   font-weight: 600;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   color: var(--text-primary);
+  transition: all 0.3s ease;
 }
 
 .title-icon {
-  font-size: 28px;
+  font-size: 22px;
 }
 
 .loading-state,
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
+  padding: 60px 20px;
 }
 
 .empty-icon {
-  font-size: 80px;
-  margin-bottom: 20px;
+  font-size: 60px;
+  margin-bottom: 16px;
 }
 
 .empty-state h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin-bottom: 8px;
   color: var(--text-primary);
 }
 
 .empty-state p {
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .empty-action {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 32px;
+  padding: 10px 24px;
   background: var(--primary);
   color: white;
   border-radius: var(--radius);
@@ -513,8 +555,8 @@ onMounted(() => {
 
 .books-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
 }
 
 .book-card {
@@ -548,16 +590,16 @@ onMounted(() => {
 }
 
 .book-card:hover {
-  transform: translateY(-12px) scale(1.02);
+  transform: translateY(-10px) scale(1.02);
   box-shadow: 
-    0 25px 50px rgba(79, 70, 229, 0.15),
-    0 10px 20px rgba(0, 0, 0, 0.1);
+    0 20px 40px rgba(79, 70, 229, 0.15),
+    0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .dark .book-card:hover {
   box-shadow: 
-    0 25px 50px rgba(79, 70, 229, 0.25),
-    0 10px 20px rgba(0, 0, 0, 0.3);
+    0 20px 40px rgba(79, 70, 229, 0.25),
+    0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
 .book-card:hover .book-cover {
@@ -566,7 +608,7 @@ onMounted(() => {
 
 .book-cover {
   position: relative;
-  height: 200px;
+  height: 160px;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
   display: flex;
   align-items: center;
@@ -585,13 +627,13 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: 50px;
   background: linear-gradient(to top, rgba(0,0,0,0.1), transparent);
 }
 
 .book-placeholder {
-  width: 100px;
-  height: 130px;
+  width: 80px;
+  height: 100px;
   background: white;
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -601,7 +643,7 @@ onMounted(() => {
 }
 
 .book-emoji {
-  font-size: 50px;
+  font-size: 36px;
 }
 
 .book-image {
@@ -612,11 +654,11 @@ onMounted(() => {
 
 .category-tag {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 6px;
+  left: 6px;
   background: var(--primary);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 500;
@@ -624,25 +666,25 @@ onMounted(() => {
 
 .book-price {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 8px;
+  right: 8px;
   background: var(--primary);
   color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
+  padding: 4px 10px;
+  border-radius: 16px;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.9rem;
   box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
 }
 
 .book-info {
-  padding: 16px;
+  padding: 12px;
 }
 
 .book-title {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -650,27 +692,27 @@ onMounted(() => {
 }
 
 .book-author {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .book-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-tertiary);
 }
 
 .seller-name {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .avatar-mini {
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .loading-more {
@@ -678,30 +720,30 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 24px;
+  padding: 20px;
   color: var(--text-secondary);
 }
 
 .no-more {
   text-align: center;
-  padding: 24px;
+  padding: 20px;
   color: var(--text-tertiary);
   font-size: 0.875rem;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: 3px solid var(--border);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin: 0 auto 16px;
+  margin: 0 auto 12px;
 }
 
 .loading-spinner.small {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-width: 2px;
   margin: 0;
 }
@@ -710,39 +752,37 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
+@keyframes bounce-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
+  .market-hero {
+    padding: 30px 16px 24px;
   }
   
-  .hero-subtitle {
-    font-size: 1rem;
-  }
-  
-  .stats-bar {
-    grid-template-columns: repeat(3, 1fr);
+  .hero-top {
+    flex-direction: column;
     gap: 12px;
   }
   
-  .stat-item {
-    padding: 16px 8px;
+  .hero-title {
+    font-size: 1.8rem;
   }
   
-  .stat-icon {
-    font-size: 24px;
-  }
-  
-  .stat-value {
-    font-size: 1.25rem;
+  .quick-stats {
+    align-self: flex-start;
   }
   
   .books-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 14px;
   }
   
-  .book-cover {
-    height: 160px;
+  .hero-decoration {
+    display: none;
   }
 }
 </style>

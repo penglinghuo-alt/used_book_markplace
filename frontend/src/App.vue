@@ -3,15 +3,18 @@ import { computed } from 'vue'
 import { RouterView } from 'vue-router'
 import MainLayout from '@components/layout/MainLayout.vue'
 import SakuraEffect from '@components/SakuraEffect.vue'
+import StarsEffect from '@components/StarsEffect.vue'
 import { useThemeStore } from '@/stores/theme'
 
 const themeStore = useThemeStore()
 const showSakura = computed(() => themeStore.isFox)
+const showStars = computed(() => !themeStore.isFox)
 </script>
 
 <template>
   <div id="app-wrapper">
     <SakuraEffect v-if="showSakura" />
+    <StarsEffect v-if="showStars" />
     <MainLayout>
       <RouterView v-slot="{ Component }">
         <!-- <transition name="fade" mode="out-in"> -->
