@@ -82,8 +82,8 @@ async function handleFollow() {
       followCounts.value.followers++
     }
   } catch (e) {
-    if (e.message?.includes('已经关注')) {
-      isFollowing.value = true
+    await checkFollowStatus()
+    if (isFollowing.value) {
       alert('你已经关注了该用户')
     } else {
       alert(e.message || '操作失败')
