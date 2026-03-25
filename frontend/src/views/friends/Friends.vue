@@ -55,7 +55,8 @@ const groupedFriends = computed(() => {
   const arr = filteredFriends.value
   if (!Array.isArray(arr)) return groups
   arr.forEach(friend => {
-    const letter = (friend.friend_name?.charAt(0) || '#').toUpperCase()
+    const firstChar = friend.friend_name?.charAt(0) || '#'
+    const letter = /[A-Z]/i.test(firstChar) ? firstChar.toUpperCase() : '#'
     if (!groups[letter]) groups[letter] = []
     groups[letter].push(friend)
   })
