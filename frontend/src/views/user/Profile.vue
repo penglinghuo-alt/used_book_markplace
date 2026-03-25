@@ -49,7 +49,7 @@ async function fetchFollowCounts() {
   if (!user.value?.id) return
   try {
     const res = await followApi.getCounts(user.value.id)
-    followCounts.value = res.data || { following: 0, followers: 0 }
+    followCounts.value = res || { following: 0, followers: 0 }
   } catch (e) {
     console.error('获取关注统计失败', e)
   }
