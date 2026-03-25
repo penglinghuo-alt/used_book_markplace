@@ -6,13 +6,13 @@
 const express = require('express');
 const router = express.Router();
 const BrowseHistory = require('../models/BrowseHistory');
-const authMiddleware = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 /**
  * POST /api/browse-history/:bookId
  * 添加浏览记录（浏览书籍时调用）
  */
-router.post('/:bookId', authMiddleware, async (req, res) => {
+router.post('/:bookId', auth, async (req, res) => {
     try {
         const userId = req.userId;
         const bookId = parseInt(req.params.bookId);
@@ -36,7 +36,7 @@ router.post('/:bookId', authMiddleware, async (req, res) => {
  * GET /api/browse-history
  * 获取当前用户的浏览历史
  */
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', auth, async (req, res) => {
     try {
         const userId = req.userId;
         const limit = parseInt(req.query.limit) || 50;
@@ -59,7 +59,7 @@ router.get('/', authMiddleware, async (req, res) => {
  * GET /api/browse-history/count
  * 获取当前用户的浏览历史数量
  */
-router.get('/count', authMiddleware, async (req, res) => {
+router.get('/count', auth, async (req, res) => {
     try {
         const userId = req.userId;
         const count = await BrowseHistory.getHistoryCount(userId);
@@ -80,7 +80,7 @@ router.get('/count', authMiddleware, async (req, res) => {
  * DELETE /api/browse-history
  * 清空当前用户的浏览历史
  */
-router.delete('/', authMiddleware, async (req, res) => {
+router.delete('/', auth, async (req, res) => {
     try {
         const userId = req.userId;
         await BrowseHistory.clearHistory(userId);
@@ -101,7 +101,7 @@ router.delete('/', authMiddleware, async (req, res) => {
  * DELETE /api/browse-history/:bookId
  * 删除单条浏览记录
  */
-router.delete('/:bookId', authMiddleware, async (req, res) => {
+router.delete('/:bookId', auth, async (req, res) => {
     try {
         const userId = req.userId;
         const bookId = parseInt(req.params.bookId);

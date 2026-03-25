@@ -6,13 +6,13 @@
 const express = require('express');
 const router = express.Router();
 const Follow = require('../models/Follow');
-const authMiddleware = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 /**
  * GET /api/follow/following
  * 获取当前用户的关注列表
  */
-router.get('/following', authMiddleware, async (req, res) => {
+router.get('/following', auth, async (req, res) => {
     try {
         const userId = req.userId;
         const list = await Follow.getFollowing(userId);
@@ -33,7 +33,7 @@ router.get('/following', authMiddleware, async (req, res) => {
  * GET /api/follow/followers
  * 获取当前用户的粉丝列表
  */
-router.get('/followers', authMiddleware, async (req, res) => {
+router.get('/followers', auth, async (req, res) => {
     try {
         const userId = req.userId;
         const list = await Follow.getFollowers(userId);
@@ -75,7 +75,7 @@ router.get('/counts/:userId', async (req, res) => {
  * GET /api/follow/status/:userId
  * 检查当前用户是否关注了指定用户
  */
-router.get('/status/:userId', authMiddleware, async (req, res) => {
+router.get('/status/:userId', auth, async (req, res) => {
     try {
         const followerId = req.userId;
         const followingId = parseInt(req.params.userId);
@@ -98,7 +98,7 @@ router.get('/status/:userId', authMiddleware, async (req, res) => {
  * POST /api/follow/:userId
  * 关注用户
  */
-router.post('/:userId', authMiddleware, async (req, res) => {
+router.post('/:userId', auth, async (req, res) => {
     try {
         const followerId = req.userId;
         const followingId = parseInt(req.params.userId);
@@ -122,7 +122,7 @@ router.post('/:userId', authMiddleware, async (req, res) => {
  * DELETE /api/follow/:userId
  * 取消关注
  */
-router.delete('/:userId', authMiddleware, async (req, res) => {
+router.delete('/:userId', auth, async (req, res) => {
     try {
         const followerId = req.userId;
         const followingId = parseInt(req.params.userId);
