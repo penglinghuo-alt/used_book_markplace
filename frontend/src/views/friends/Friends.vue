@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/user'
 import { useFriendshipStore } from '@/stores/friendship'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
+import pinyin from 'pinyin'
 
 dayjs.locale('zh-cn')
 
@@ -18,6 +19,19 @@ const friends = ref([])
 const requests = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
+
+function getPinyinInitial(name) {
+  if (!name) return '#'
+  const firstChar = name.charAt(0)
+  if (/[A-Za-z]/.test(firstChar)) {
+    return firstChar.toUpperCase()
+  }
+  const result = pinyin(firstChar, { style: pinyin.STYLE_FIRST_LETTER })
+  if (result && result[0] && result[0][0]) {
+    return result[0][0].toUpperCase()
+  }
+  return '#'
+}
 
 async function fetchFriends() {
   loading.value = true
@@ -55,8 +69,7 @@ const groupedFriends = computed(() => {
   const arr = filteredFriends.value
   if (!Array.isArray(arr)) return groups
   arr.forEach(friend => {
-    const firstChar = friend.friend_name?.charAt(0) || '#'
-    const letter = /[A-Z]/i.test(firstChar) ? firstChar.toUpperCase() : '#'
+    const letter = getPinyinInitial(friend.friend_name)
     if (!groups[letter]) groups[letter] = []
     groups[letter].push(friend)
   })
