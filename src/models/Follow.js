@@ -14,41 +14,27 @@ class Follow {
      * @returns {Promise<Object>} 关注结果
      */
     static async follow(followerId, followingId) {
-        logger.info(`follow方法开始`, { followerId, followingId });
-        
         if (followerId === followingId) {
-            logger.info(`不能关注自己`);
             throw new Error('不能关注自己');
         }
 
-        logger.info(`检查是否已关注`);
         const existing = await this.findRelation(followerId, followingId);
-        logger.info(`findRelation结果`, { existing });
         
         if (existing) {
-            logger.info(`已存在关注关系`);
             throw new Error('你已经关注过该用户');
         }
 
-        try {
-            const sql = `
-                INSERT INTO follows (follower_id, following_id)
-                VALUES (?, ?)
-            `;
-            logger.info(`执行INSERT`, { params: [followerId, followingId] });
-            const id = await db.insert(sql, [followerId, followingId]);
+        const sql = `
+            INSERT INTO follows (follower_id, following_id)
+            VALUES (?, ?)
+        `;
+        const id = await db.insert(sql, [followerId, followingId]);
 
-            logger.info(`关注成功`, { id, followerId, followingId });
-
-            return {
-                id,
-                follower_id: followerId,
-                following_id: followingId
-            };
-        } catch (error) {
-            logger.error('关注失败catch', { error: error.message, stack: error.stack, followerId, followingId });
-            throw error;
-        }
+        return {
+            id,
+            follower_id: followerId,
+            following_id: followingId
+        };
     }
 
         const existing = await this.findRelation(followerId, followingId);
