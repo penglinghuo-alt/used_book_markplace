@@ -71,11 +71,11 @@ onUnmounted(() => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   pointer-events: none;
   overflow: hidden;
-  z-index: 0;
+  z-index: -1;
 }
 
 .star {
@@ -91,24 +91,24 @@ onUnmounted(() => {
 
 @keyframes star-glow {
   0%, 100% {
-    opacity: 0.3;
+    opacity: 0.4;
     transform: scale(1);
   }
   50% {
     opacity: 1;
-    transform: scale(1.2);
+    transform: scale(1.3);
   }
 }
 
 @keyframes star-twinkle {
   0%, 100% {
-    opacity: 0.2;
-    transform: scale(0.8);
+    opacity: 0.3;
+    transform: scale(0.9);
   }
   50% {
     opacity: 1;
-    transform: scale(1.5);
-    box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.5);
+    transform: scale(1.6);
+    box-shadow: 0 0 8px 3px rgba(255, 255, 255, 0.6);
   }
 }
 

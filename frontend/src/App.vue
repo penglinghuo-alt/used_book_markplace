@@ -13,8 +13,10 @@ const showStars = computed(() => !themeStore.isFox)
 
 <template>
   <div id="app-wrapper">
-    <SakuraEffect v-if="showSakura" />
-    <StarsEffect v-if="showStars" />
+    <Teleport to="body">
+      <SakuraEffect v-if="showSakura" />
+      <StarsEffect v-if="showStars" />
+    </Teleport>
     <MainLayout>
       <RouterView v-slot="{ Component }">
         <!-- <transition name="fade" mode="out-in"> -->
@@ -26,6 +28,10 @@ const showStars = computed(() => !themeStore.isFox)
 </template>
 
 <style>
+body {
+  min-height: 100vh;
+}
+
 #app-wrapper {
   width: 100%;
   min-height: 100vh;
