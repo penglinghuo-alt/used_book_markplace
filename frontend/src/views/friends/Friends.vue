@@ -22,7 +22,7 @@ async function fetchFriends() {
   loading.value = true
   try {
     const res = await friendshipApi.getFriends()
-    friends.value = res || []
+    friends.value = res.friends || []
   } catch (e) {
     console.error('获取好友列表失败', e)
   } finally {
@@ -34,7 +34,7 @@ async function fetchRequests() {
   loading.value = true
   try {
     const res = await friendshipApi.getPendingRequests()
-    requests.value = res || []
+    requests.value = res.requests || []
   } catch (e) {
     console.error('获取好友申请失败', e)
   } finally {
