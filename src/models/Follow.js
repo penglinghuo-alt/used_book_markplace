@@ -14,6 +14,8 @@ class Follow {
      * @returns {Promise<Object>} 关注结果
      */
     static async follow(followerId, followingId) {
+        logger.info(`尝试关注操作`, { followerId, followingId, types: { follower: typeof followerId, following: typeof followingId } });
+        
         if (followerId === followingId) {
             throw new Error('不能关注自己');
         }
@@ -28,9 +30,10 @@ class Follow {
                 INSERT INTO follows (follower_id, following_id)
                 VALUES (?, ?)
             `;
+            logger.info(`执行INSERT`, { sql, params: [followerId, followingId] });
             const id = await db.insert(sql, [followerId, followingId]);
 
-            logger.info(`用户 ${followerId} 关注了用户 ${followingId}`);
+            logger.info(`关注成功`, { id, followerId, followingId });
 
             return {
                 id,
@@ -38,7 +41,7 @@ class Follow {
                 following_id: followingId
             };
         } catch (error) {
-            logger.error('关注失败', { error: error.message, followerId, followingId });
+            logger.error('关注失败', { error: error.message, stack: error.stack, followerId, followingId });
             throw error;
         }
     }
