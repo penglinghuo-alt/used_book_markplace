@@ -65,19 +65,23 @@ class Friendship {
     }
 
     /**
-     * 获取用户的好友列表
+     * 获取用户的好友列表（双向查询）
      */
     static async getFriends(userId) {
         const sql = `
-            SELECT f.*, 
-                   u.username as friend_name,
-                   u.avatar_url as friend_avatar
+            SELECT 
+                CASE WHEN f.user_id = ? THEN f.friend_id ELSE f.user_id END as friend_id,
+                u.username as friend_name,
+                u.avatar_url as friend_avatar,
+                u.bio as friend_bio,
+                CASE WHEN f.user_id = ? THEN 'sent' ELSE 'received' END as relation_type
             FROM friendships f
-            JOIN users u ON f.friend_id = u.id
-            WHERE f.user_id = ? AND f.status = 'accepted'
+            JOIN users u ON u.id = CASE WHEN f.user_id = ? THEN f.friend_id ELSE f.user_id END
+            WHERE ((f.user_id = ? AND f.status = 'accepted') 
+               OR (f.friend_id = ? AND f.status = 'accepted'))
             ORDER BY f.updated_at DESC
         `;
-        return await db.query(sql, [userId]);
+        return await db.query(sql, [userId, userId, userId, userId, userId]);
     }
 
     /**

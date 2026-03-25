@@ -181,7 +181,6 @@ class Message {
      */
     static async getConversationsList(userId) {
         try {
-            // 使用子查询获取每个对话的最新消息
             const sql = `
                 SELECT 
                     CASE 
@@ -193,7 +192,8 @@ class Message {
                     m.sent_at as last_message_time,
                     (SELECT COUNT(*) FROM messages 
                      WHERE sender_id = CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END
-                       AND receiver_id = ? AND sent_at > m.sent_at) as unread_count
+                       AND receiver_id = ?
+                       AND (is_read = 0 OR is_read IS NULL)) as unread_count
                 FROM messages m
                 JOIN users u ON u.id = CASE 
                     WHEN m.sender_id = ? THEN m.receiver_id 
