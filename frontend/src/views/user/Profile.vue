@@ -248,16 +248,22 @@ onMounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  height: 180px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 200px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% 200%;
+  animation: gradient-flow 8s ease infinite;
 }
 
 .dark .header-bg {
-  background: linear-gradient(135deg, #1e1e3f 0%, #2d1b4e 100%);
+  background: linear-gradient(135deg, #1e1e3f 0%, #2d1b4e 50%, #3d2a5c 100%);
+  background-size: 200% 200%;
+  animation: gradient-flow 8s ease infinite;
 }
 
 .fox .header-bg {
-  background: linear-gradient(135deg, #e65c00 0%, #ffcc00 100%);
+  background: linear-gradient(135deg, #ff69b4 0%, #ffc0cb 50%, #ffb6c1 100%);
+  background-size: 200% 200%;
+  animation: gradient-flow 8s ease infinite;
 }
 
 .profile-info {
@@ -265,24 +271,30 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 100px;
+  padding-top: 120px;
   text-align: center;
 }
 
 .avatar-large {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: 700;
-  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
-  border: 4px solid var(--bg-card);
+  box-shadow: 0 12px 40px rgba(79, 70, 229, 0.4);
+  border: 5px solid var(--bg-card);
   overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.avatar-large:hover {
+  transform: scale(1.08);
+  box-shadow: 0 16px 50px rgba(79, 70, 229, 0.5);
 }
 
 .avatar-img {
@@ -328,22 +340,49 @@ onMounted(() => {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
 .stat-card {
   background: var(--bg-card);
   border-radius: var(--radius-md);
-  padding: 20px;
+  padding: 24px;
   display: flex;
   align-items: center;
   gap: 16px;
   box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover::before {
+  transform: scaleX(1);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 .stat-icon {
-  font-size: 32px;
+  font-size: 36px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .stat-detail {
@@ -352,7 +391,7 @@ onMounted(() => {
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -368,6 +407,12 @@ onMounted(() => {
   padding: 20px;
   margin-bottom: 16px;
   box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: box-shadow 0.3s ease;
+}
+
+.menu-section:hover {
+  box-shadow: var(--shadow);
 }
 
 .section-title {
@@ -388,9 +433,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border);
   transition: all var(--transition);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
 }
 
 .menu-item:last-child {
@@ -399,10 +446,16 @@ onMounted(() => {
 
 .menu-item:hover {
   padding-left: 8px;
+  background: var(--bg-hover);
 }
 
 .menu-icon {
-  font-size: 20px;
+  font-size: 22px;
+  transition: transform 0.3s ease;
+}
+
+.menu-item:hover .menu-icon {
+  transform: scale(1.2);
 }
 
 .menu-label {
@@ -414,6 +467,11 @@ onMounted(() => {
 .menu-arrow {
   font-size: 1.25rem;
   color: var(--text-tertiary);
+  transition: transform 0.3s ease;
+}
+
+.menu-item:hover .menu-arrow {
+  transform: translateX(4px);
 }
 
 .contact-card {
@@ -474,19 +532,22 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px;
+  padding: 16px;
   background: var(--bg-card);
   border: 2px solid var(--error);
   border-radius: var(--radius);
   color: var(--error);
   font-weight: 600;
   transition: all var(--transition);
-  margin-top: 24px;
+  margin-top: 28px;
+  cursor: pointer;
 }
 
 .logout-btn:hover {
   background: var(--error);
   color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .modal-overlay {

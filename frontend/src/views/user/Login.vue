@@ -170,23 +170,24 @@ async function resetPassword() {
 
 <template>
   <div class="login-page">
-    <div class="login-container">
+    <div class="hero-bg-animation"></div>
+    <div class="login-container glass">
       <div class="login-header">
         <div class="logo">
-          <span class="logo-icon">📚</span>
-          <span class="logo-text">二手书市</span>
+          <span class="logo-icon bounce-in">📚</span>
+          <span class="logo-text text-gradient-animate">二手书市</span>
         </div>
         <h1 class="login-title">欢迎回来</h1>
         <p class="login-subtitle">登录您的账户，继续淘书之旅</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="login-form">
-        <div v-if="error" class="error-alert">
+        <div v-if="error" class="error-alert bounce-in">
           <span>⚠️</span>
           {{ error }}
         </div>
 
-        <div class="form-group">
+        <div class="form-group hover-lift">
           <label class="form-label">用户名</label>
           <input 
             v-model="form.username"
@@ -196,7 +197,7 @@ async function resetPassword() {
           />
         </div>
 
-        <div class="form-group">
+        <div class="form-group hover-lift">
           <label class="form-label">密码</label>
           <input 
             v-model="form.password"
@@ -206,7 +207,7 @@ async function resetPassword() {
           />
         </div>
 
-        <div class="form-group captcha-group">
+        <div class="form-group captcha-group hover-lift">
           <label class="form-label">验证码</label>
           <div class="captcha-row">
             <input 
@@ -216,17 +217,17 @@ async function resetPassword() {
               placeholder="请输入验证码"
               maxlength="6"
             />
-            <div class="captcha-image" @click="fetchCaptcha" v-html="captcha.data"></div>
+            <div class="captcha-image neon-border" @click="fetchCaptcha" v-html="captcha.data"></div>
           </div>
         </div>
 
-        <button type="submit" class="submit-btn" :disabled="loading">
+        <button type="submit" class="submit-btn ripple pulse-glow" :disabled="loading">
           <span v-if="loading" class="loading-spinner"></span>
           <span v-else>→</span>
           <span>{{ loading ? '登录中...' : '登录' }}</span>
         </button>
 
-        <button type="button" class="demo-btn" @click="handleDemoLogin">
+        <button type="button" class="demo-btn ripple" @click="handleDemoLogin">
           <span>🚀</span>
           <span>游客体验</span>
         </button>
@@ -301,21 +302,42 @@ async function resetPassword() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% 200%;
+  animation: gradient-flow 8s ease infinite;
   padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg-animation {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 30% 70%, rgba(102, 126, 234, 0.5) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(240, 147, 251, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(118, 75, 162, 0.3) 0%, transparent 60%);
+  animation: pulse-glow 4s ease-in-out infinite;
 }
 
 .dark .login-page {
-  background: linear-gradient(135deg, #1e1e3f 0%, #2d1b4e 100%);
+  background: linear-gradient(135deg, #1e1e3f 0%, #2d1b4e 50%, #3d2a5c 100%);
+  background-size: 200% 200%;
+  animation: gradient-flow 8s ease infinite;
 }
 
 .login-container {
   width: 100%;
-  max-width: 400px;
-  background: var(--bg-card);
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-xl);
-  padding: 40px;
+  padding: 48px;
   box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .login-header {
@@ -332,27 +354,30 @@ async function resetPassword() {
 }
 
 .logo-icon {
-  font-size: 40px;
+  font-size: 48px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
 }
 
 .logo-text {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-shadow: 0 2px 10px rgba(255,255,255,0.3);
 }
 
 .login-title {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: white;
   margin-bottom: 8px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
 .login-subtitle {
-  color: var(--text-secondary);
+  color: rgba(255,255,255,0.85);
 }
 
 .login-form {
@@ -365,16 +390,18 @@ async function resetPassword() {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: #fee2e2;
+  padding: 14px 16px;
+  background: rgba(239, 68, 68, 0.9);
+  backdrop-filter: blur(10px);
   border-radius: var(--radius);
-  color: #991b1b;
+  color: white;
   font-size: 0.875rem;
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
 .dark .error-alert {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background: rgba(239, 68, 68, 0.3);
+  color: #fee2e2;
 }
 
 .form-group {
@@ -385,27 +412,30 @@ async function resetPassword() {
 
 .form-label {
   font-weight: 600;
-  color: var(--text-primary);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .form-input {
-  padding: 14px 16px;
-  border: 2px solid var(--border);
+  padding: 16px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius);
   font-size: 1rem;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: white;
   transition: all var(--transition);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: white;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
 }
 
 .form-input::placeholder {
-  color: var(--text-tertiary);
+  color: rgba(255,255,255,0.6);
 }
 
 .captcha-group .form-label {
@@ -423,16 +453,19 @@ async function resetPassword() {
 
 .captcha-image {
   width: 120px;
-  height: 42px;
+  height: 48px;
   border-radius: var(--radius);
   overflow: hidden;
   cursor: pointer;
-  border: 2px solid var(--border);
-  transition: border-color var(--transition);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all var(--transition);
+  background: rgba(255,255,255,0.1);
 }
 
 .captcha-image:hover {
-  border-color: var(--primary);
+  border-color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(255,255,255,0.2);
 }
 
 .captcha-image :deep(svg) {
@@ -445,19 +478,19 @@ async function resetPassword() {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 16px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
+  padding: 18px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  color: var(--primary);
   border-radius: var(--radius);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
   transition: all var(--transition);
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
 }
 
 .submit-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(255, 255, 255, 0.4);
 }
 
 .submit-btn:disabled {
@@ -471,19 +504,20 @@ async function resetPassword() {
   justify-content: center;
   gap: 8px;
   padding: 14px;
-  background: var(--bg-secondary);
-  border: 2px dashed var(--border);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
   border-radius: var(--radius);
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: white;
   transition: all var(--transition);
 }
 
 .demo-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: rgba(79, 70, 229, 0.05);
+  border-color: white;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .loading-spinner {
@@ -500,9 +534,9 @@ async function resetPassword() {
 }
 
 .login-footer {
-  margin-top: 24px;
+  margin-top: 28px;
   text-align: center;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .forgot-link {
@@ -510,17 +544,19 @@ async function resetPassword() {
 }
 
 .forgot-link a {
-  color: var(--text-tertiary);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
+  transition: color var(--transition);
 }
 
 .forgot-link a:hover {
-  color: var(--primary);
+  color: white;
 }
 
 .link {
-  color: var(--primary);
-  font-weight: 600;
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .link:hover {

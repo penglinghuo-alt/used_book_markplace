@@ -119,10 +119,13 @@ onMounted(() => {
 <template>
   <div class="market-page">
     <div class="market-hero">
+      <div class="hero-bg-animation"></div>
       <div class="hero-content">
-        <h1 class="hero-title">发现好书</h1>
+        <h1 class="hero-title">
+          <span class="text-gradient-animate">发现好书</span>
+        </h1>
         <p class="hero-subtitle">在这里找到你想要的二手书籍</p>
-        <div class="search-box">
+        <div class="search-box glass neon-border">
           <span class="search-icon">🔍</span>
           <input 
             v-model="searchQuery"
@@ -135,7 +138,7 @@ onMounted(() => {
           <button 
             v-for="cat in categories" 
             :key="cat.value"
-            class="category-btn"
+            class="category-btn ripple"
             :class="{ active: selectedCategory === cat.value }"
             @click="selectedCategory = cat.value"
           >
@@ -144,9 +147,9 @@ onMounted(() => {
         </div>
       </div>
       <div class="hero-decoration">
-        <div class="deco-book">📚</div>
-        <div class="deco-book">📖</div>
-        <div class="deco-book">📕</div>
+        <div class="deco-book float-gentle">📚</div>
+        <div class="deco-book float-gentle" style="animation-delay: 0.5s">📖</div>
+        <div class="deco-book float-gentle" style="animation-delay: 1s">📕</div>
       </div>
     </div>
 
@@ -241,14 +244,28 @@ onMounted(() => {
 }
 
 .market-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 60px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% 200%;
+  animation: gradient-flow 8s ease infinite;
+  padding: 80px 20px;
   position: relative;
   overflow: hidden;
 }
 
+.hero-bg-animation {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(240, 147, 251, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(118, 75, 162, 0.3) 0%, transparent 40%);
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
 .dark .market-hero {
-  background: linear-gradient(135deg, #1e1e3f 0%, #2d1b4e 100%);
+  background: linear-gradient(135deg, #1e1e3f 0%, #2d1b4e 50%, #3d2a5c 100%);
+  background-size: 200% 200%;
+  animation: gradient-flow 8s ease infinite;
 }
 
 .hero-content {
@@ -260,11 +277,11 @@ onMounted(() => {
 }
 
 .hero-title {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 800;
   color: white;
   margin-bottom: 12px;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  text-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .hero-subtitle {
@@ -276,18 +293,23 @@ onMounted(() => {
 .search-box {
   max-width: 560px;
   margin: 0 auto;
-  background: white;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 60px;
   padding: 8px 24px;
   display: flex;
   align-items: center;
   gap: 12px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  transition: transform var(--transition);
+  transition: all var(--transition);
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
 .search-box:focus-within {
   transform: scale(1.02);
+  box-shadow: 0 15px 50px rgba(79, 70, 229, 0.3);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .search-icon {
@@ -323,36 +345,39 @@ onMounted(() => {
 .category-btn {
   padding: 8px 20px;
   border-radius: 20px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
   color: white;
   font-weight: 500;
   transition: all var(--transition);
-  border: 1px solid transparent;
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
 .category-btn:hover {
-  background: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.25);
+  transform: translateY(-2px);
 }
 
 .category-btn.active {
   background: white;
   color: var(--primary);
-  border-color: var(--primary);
+  border-color: white;
+  box-shadow: 0 4px 15px rgba(255,255,255,0.3);
 }
 
 .hero-decoration {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  right: 10%;
+  right: 8%;
   display: flex;
-  gap: 20px;
-  opacity: 0.2;
+  gap: 30px;
+  opacity: 0.15;
 }
 
 .deco-book {
-  font-size: 80px;
-  animation: float 3s ease-in-out infinite;
+  font-size: 100px;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
 }
 
 .deco-book:nth-child(2) {
@@ -364,8 +389,9 @@ onMounted(() => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-20px) rotate(5deg); }
+  75% { transform: translateY(-10px) rotate(-5deg); }
 }
 
 .market-content {
@@ -390,12 +416,31 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition: all var(--transition);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  transition: left 0.5s ease;
+}
+
+.stat-item:hover::before {
+  left: 0;
 }
 
 .stat-item:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
   box-shadow: var(--shadow-lg);
+  border-color: var(--primary-light);
 }
 
 .stat-icon {
@@ -469,7 +514,7 @@ onMounted(() => {
 .books-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 24px;
+  gap: 28px;
 }
 
 .book-card {
@@ -478,16 +523,45 @@ onMounted(() => {
   overflow: hidden;
   box-shadow: var(--shadow);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+.book-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  padding: 2px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.book-card:hover::before {
+  opacity: 1;
 }
 
 .book-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 
+    0 25px 50px rgba(79, 70, 229, 0.15),
+    0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.dark .book-card:hover {
+  box-shadow: 
+    0 25px 50px rgba(79, 70, 229, 0.25),
+    0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
 .book-card:hover .book-cover {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .book-cover {
@@ -497,11 +571,22 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform var(--transition);
+  transition: transform 0.4s ease;
+  overflow: hidden;
 }
 
 .dark .book-cover {
   background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+}
+
+.book-cover::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to top, rgba(0,0,0,0.1), transparent);
 }
 
 .book-placeholder {
