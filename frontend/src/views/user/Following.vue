@@ -74,7 +74,8 @@ onMounted(() => {
           class="user-item"
         >
           <div class="avatar" @click="goToUser(item.following_id)">
-            {{ item.following_username?.charAt(0).toUpperCase() || '?' }}
+            <img v-if="item.following_avatar" :src="item.following_avatar" :alt="item.following_username" class="avatar-img" />
+            <span v-else>{{ item.following_username?.charAt(0).toUpperCase() || '?' }}</span>
           </div>
           <div class="user-info" @click="goToUser(item.following_id)">
             <div class="user-name">{{ item.following_username }}</div>
@@ -177,6 +178,13 @@ onMounted(() => {
   flex-shrink: 0;
   cursor: pointer;
   transition: transform 0.2s;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .avatar:hover {
