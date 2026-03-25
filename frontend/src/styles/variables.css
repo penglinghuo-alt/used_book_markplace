@@ -61,11 +61,13 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -75,7 +77,11 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   transition: background-color var(--transition), color var(--transition);
+  overscroll-behavior-y: contain;
 }
 
 a {
@@ -88,16 +94,48 @@ button {
   background: none;
   cursor: pointer;
   font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 input, textarea, select {
   font-family: inherit;
   font-size: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }
 
 img {
   max-width: 100%;
   height: auto;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
 }
 
 .page-container {
@@ -126,7 +164,44 @@ img {
   top: 0;
   z-index: 100;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.8);
+}
+
+.dark .page-header {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+body.fox .page-header {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+body.fox .app-header {
+  background: rgba(255, 250, 253, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+body.fox .app-tabbar {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top-color: var(--border);
+}
+
+body.fox .stat-card {
+  background: linear-gradient(135deg, rgba(255,245,247,0.9) 0%, rgba(255,228,233,0.9) 100%);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .dark .page-header {
@@ -280,11 +355,12 @@ body.fox ::-webkit-scrollbar-thumb:hover {
 .neon-border:hover::before {
   opacity: 1;
   animation: neon-rotate 3s linear infinite;
+  -webkit-animation: neon-rotate 3s linear infinite;
 }
 
 @keyframes neon-rotate {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
+  0% { filter: hue-rotate(0deg); -webkit-filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); -webkit-filter: hue-rotate(360deg); }
 }
 
 @keyframes gradient-flow {
@@ -296,6 +372,8 @@ body.fox ::-webkit-scrollbar-thumb:hover {
 .gradient-animate {
   background-size: 200% 200%;
   animation: gradient-flow 4s ease infinite;
+  -webkit-animation: gradient-flow 4s ease infinite;
+  -webkit-background-size: 200% 200%;
 }
 
 @keyframes pulse-glow {
@@ -305,15 +383,17 @@ body.fox ::-webkit-scrollbar-thumb:hover {
 
 .pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+  -webkit-animation: pulse-glow 2s ease-in-out infinite;
 }
 
 @keyframes float-gentle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { transform: translateY(0); -webkit-transform: translateY(0); }
+  50% { transform: translateY(-10px); -webkit-transform: translateY(-10px); }
 }
 
 .float-gentle {
   animation: float-gentle 3s ease-in-out infinite;
+  -webkit-animation: float-gentle 3s ease-in-out infinite;
 }
 
 @keyframes shimmer {
@@ -325,15 +405,20 @@ body.fox ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-hover) 50%, var(--bg-secondary) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
+  -webkit-animation: shimmer 1.5s ease-in-out infinite;
+  -webkit-background-size: 200% 100%;
 }
 
 .card-3d {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  -webkit-transition: -webkit-transform 0.3s ease, box-shadow 0.3s ease;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 
 .card-3d:hover {
   transform: translateY(-10px) rotateX(2deg) rotateY(-2deg);
+  -webkit-transform: translateY(-10px) rotateX(2deg) rotateY(-2deg);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
@@ -355,24 +440,29 @@ body.fox ::-webkit-scrollbar-thumb:hover {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: gradient-flow 3s ease infinite;
+  -webkit-animation: gradient-flow 3s ease infinite;
+  -webkit-background-size: 200% auto;
 }
 
 @keyframes bounce-in {
-  0% { transform: scale(0.8); opacity: 0; }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
+  0% { transform: scale(0.8); -webkit-transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); -webkit-transform: scale(1.05); }
+  100% { transform: scale(1); -webkit-transform: scale(1); opacity: 1; }
 }
 
 .bounce-in {
   animation: bounce-in 0.5s ease-out forwards;
+  -webkit-animation: bounce-in 0.5s ease-out forwards;
 }
 
 .hover-lift {
   transition: transform var(--transition), box-shadow var(--transition);
+  -webkit-transition: -webkit-transform var(--transition), box-shadow var(--transition);
 }
 
 .hover-lift:hover {
   transform: translateY(-6px);
+  -webkit-transform: translateY(-6px);
   box-shadow: var(--shadow-lg);
 }
 
@@ -389,13 +479,16 @@ body.fox ::-webkit-scrollbar-thumb:hover {
   top: 0;
   left: 0;
   background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  -webkit-radial-gradient: circle, rgba(255,255,255,0.3) 0%, transparent 70%;
   transform: scale(0);
+  -webkit-transform: scale(0);
   opacity: 0;
   transition: transform 0.5s, opacity 0.3s;
 }
 
 .ripple:active::after {
   transform: scale(2);
+  -webkit-transform: scale(2);
   opacity: 1;
   transition: 0s;
 }
