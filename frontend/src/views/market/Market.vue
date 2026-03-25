@@ -257,30 +257,30 @@ onMounted(() => {
 .market-page {
   min-height: 100vh;
   position: relative;
-  z-index: 1;
 }
 
 .market-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 50%, rgba(240, 147, 251, 0.8) 100%);
   background-size: 200% 200%;
   animation: gradient-flow 8s ease infinite;
   padding: 40px 20px 30px;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(2px);
 }
 
 .hero-bg-animation {
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.4) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(240, 147, 251, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(118, 75, 162, 0.3) 0%, transparent 40%);
+    radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(240, 147, 251, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(118, 75, 162, 0.2) 0%, transparent 40%);
   animation: pulse-glow 4s ease-in-out infinite;
 }
 
 .dark .market-hero {
-  background: linear-gradient(135deg, #1e1e3f 0%, #2d1b4e 50%, #3d2a5c 100%);
+  background: linear-gradient(135deg, rgba(30, 30, 63, 0.85) 0%, rgba(45, 27, 78, 0.85) 50%, rgba(61, 42, 92, 0.8) 100%);
   background-size: 200% 200%;
   animation: gradient-flow 8s ease infinite;
 }
