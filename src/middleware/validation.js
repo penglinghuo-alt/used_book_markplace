@@ -62,12 +62,15 @@ const usernameValidation = body('username')
 
 /**
  * 密码验证规则
- * - 密码长度至少 6 个字符
+ * - 密码长度至少 8 个字符
+ * - 必须包含大小写字母和数字
  */
 const passwordValidation = body('password')
     .trim()
-    .isLength({ min: 6 })
-    .withMessage('密码长度至少为 6 个字符');
+    .isLength({ min: 8 })
+    .withMessage('密码长度至少为 8 个字符')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)
+    .withMessage('密码必须包含大小写字母和数字');
 
 /**
  * 注册验证规则

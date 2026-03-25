@@ -12,8 +12,14 @@ const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
 const User = require('../models/User');
 
-// 从环境变量获取 JWT 密钥
-const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_jwt_key';
+// 从环境变量获取 JWT 密钥（必须设置）
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable must be set for security');
+}
+
+// JWT 过期时间（生产环境应缩短）
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 /**
  * 用户认证中间件
@@ -148,9 +154,8 @@ const optionalAuth = async (req, res, next) => {
  * @returns {string} JWT 令牌
  */
 const generateToken = (payload) => {
-    // 签发令牌，设置过期时间
     return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN || '7d'  // 默认7天过期
+        expiresIn: JWT_EXPIRES_IN
     });
 };
 
