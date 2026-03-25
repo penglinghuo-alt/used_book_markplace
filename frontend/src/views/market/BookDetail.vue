@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { bookApi, userApi } from '@/api'
+import { bookApi, userApi, browseHistoryApi } from '@/api'
 import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -37,6 +37,14 @@ async function fetchBookDetail() {
         seller.value = sellerRes.user
       } catch (e) {
         console.error('获取卖家信息失败', e)
+      }
+    }
+    
+    if (userStore.isLoggedIn) {
+      try {
+        await browseHistoryApi.addRecord(book.value.id)
+      } catch (e) {
+        console.error('添加浏览记录失败', e)
       }
     }
   } catch (error) {

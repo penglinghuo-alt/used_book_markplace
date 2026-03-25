@@ -250,6 +250,41 @@ async function initializeDatabase() {
         await query(createFriendshipTable);
         console.log('✅ friendships 表创建成功');
         
+        const createFollowTable = `
+            CREATE TABLE IF NOT EXISTS follows (
+                id INT AUTO_INCREMENT PRIMARY KEY COMMENT '关注关系ID',
+                follower_id INT NOT NULL COMMENT '关注者ID',
+                following_id INT NOT NULL COMMENT '被关注者ID',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '关注时间',
+                INDEX idx_follower_id (follower_id),
+                INDEX idx_following_id (following_id),
+                UNIQUE KEY uk_follow (follower_id, following_id),
+                FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='关注关系表'
+        `;
+        
+        await query(createFollowTable);
+        console.log('✅ follows 表创建成功');
+        
+        const createBrowseHistoryTable = `
+            CREATE TABLE IF NOT EXISTS browse_history (
+                id INT AUTO_INCREMENT PRIMARY KEY COMMENT '浏览记录ID',
+                user_id INT NOT NULL COMMENT '用户ID',
+                book_id INT NOT NULL COMMENT '书籍ID',
+                viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '浏览时间',
+                INDEX idx_user_id (user_id),
+                INDEX idx_book_id (book_id),
+                INDEX idx_viewed_at (viewed_at),
+                UNIQUE KEY uk_browse (user_id, book_id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='浏览历史表'
+        `;
+        
+        await query(createBrowseHistoryTable);
+        console.log('✅ browse_history 表创建成功');
+        
         console.log('🎉 数据库初始化完成!');
     } catch (error) {
         console.error('❌ 数据库初始化失败:', error.message);

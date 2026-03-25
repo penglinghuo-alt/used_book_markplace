@@ -2,8 +2,7 @@
 import { onMounted, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { userApi } from '@/api'
-import { transactionApi } from '@/api'
+import { userApi, transactionApi, followApi } from '@/api'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 
@@ -15,6 +14,11 @@ const userStore = useUserStore()
 const stats = ref({
   soldCount: 0,
   boughtCount: 0
+})
+
+const followCounts = ref({
+  following: 0,
+  followers: 0
 })
 
 const user = computed(() => userStore.user)
@@ -38,6 +42,16 @@ async function fetchStats() {
     stats.value = res.stats || res
   } catch (e) {
     console.error('获取统计失败', e)
+  }
+}
+
+async function fetchFollowCounts() {
+  if (!user.value?.id) return
+  try {
+    const res = await followApi.getCounts(user.value.id)
+    followCounts.value = res.data || { following: 0, followers: 0 }
+  } catch (e) {
+    console.error('获取关注统计失败', e)
   }
 }
 
@@ -96,6 +110,7 @@ onMounted(() => {
   if (userStore.isLoggedIn) {
     userStore.fetchProfile()
     fetchStats()
+    fetchFollowCounts()
   }
 })
 </script>
@@ -133,6 +148,31 @@ onMounted(() => {
               <span class="stat-value">{{ stats.boughtCount }}</span>
               <span class="stat-label">已购入</span>
             </div>
+          </div>
+          <router-link to="/following" class="stat-card clickable">
+            <div class="stat-icon">👥</div>
+            <div class="stat-detail">
+              <span class="stat-value">{{ followCounts.following }}</span>
+              <span class="stat-label">关注</span>
+            </div>
+          </router-link>
+          <router-link to="/followers" class="stat-card clickable">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-detail">
+              <span class="stat-value">{{ followCounts.followers }}</span>
+              <span class="stat-label">粉丝</span>
+            </div>
+          </router-link>
+        </div>
+
+        <div class="menu-section">
+          <h3 class="section-title">浏览记录</h3>
+          <div class="menu-list">
+            <router-link to="/browse-history" class="menu-item">
+              <span class="menu-icon">📜</span>
+              <span class="menu-label">浏览历史</span>
+              <span class="menu-arrow">›</span>
+            </router-link>
           </div>
         </div>
 
@@ -378,6 +418,15 @@ onMounted(() => {
 .stat-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.stat-card.clickable:hover {
+  border-color: var(--primary-light);
 }
 
 .stat-icon {

@@ -12,6 +12,8 @@ const bookRoutes = require('./bookRoutes');
 const messageRoutes = require('./messageRoutes');
 const transactionRoutes = require('./transactionRoutes');
 const friendshipRoutes = require('./friendshipRoutes');
+const followRoutes = require('./followRoutes');
+const browseHistoryRoutes = require('./browseHistoryRoutes');
 
 // ==================== 路由挂载 ====================
 
@@ -90,6 +92,33 @@ router.use('/transactions', transactionRoutes);
  * - DELETE /api/friendships/:friendId         - 删除好友
  */
 router.use('/friendships', friendshipRoutes);
+
+/**
+ * 关注相关路由
+ * 前缀: /api/follow
+ * 
+ * 接口列表:
+ * - POST   /api/follow/:userId              - 关注用户
+ * - DELETE /api/follow/:userId              - 取消关注
+ * - GET    /api/follow/following            - 获取关注列表
+ * - GET    /api/follow/followers            - 获取粉丝列表
+ * - GET    /api/follow/counts/:userId       - 获取关注/粉丝数量
+ * - GET    /api/follow/status/:userId       - 检查是否关注
+ */
+router.use('/follow', followRoutes);
+
+/**
+ * 浏览历史相关路由
+ * 前缀: /api/browse-history
+ * 
+ * 接口列表:
+ * - POST   /api/browse-history/:bookId      - 添加浏览记录
+ * - GET    /api/browse-history              - 获取浏览历史
+ * - GET    /api/browse-history/count        - 获取浏览历史数量
+ * - DELETE /api/browse-history              - 清空浏览历史
+ * - DELETE /api/browse-history/:bookId      - 删除单条记录
+ */
+router.use('/browse-history', browseHistoryRoutes);
 
 // ==================== 健康检查 ====================
 

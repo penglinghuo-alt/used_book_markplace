@@ -160,3 +160,42 @@ export const friendshipApi = {
     return api.delete(`/friendships/${friendId}`)
   }
 }
+
+export const followApi = {
+  follow(userId) {
+    return api.post(`/follow/${userId}`)
+  },
+  unfollow(userId) {
+    return api.delete(`/follow/${userId}`)
+  },
+  getFollowing() {
+    return api.get('/follow/following')
+  },
+  getFollowers() {
+    return api.get('/follow/followers')
+  },
+  getCounts(userId) {
+    return api.get(`/follow/counts/${userId}`)
+  },
+  checkStatus(userId) {
+    return api.get(`/follow/status/${userId}`)
+  }
+}
+
+export const browseHistoryApi = {
+  addRecord(bookId) {
+    return api.post(`/browse-history/${bookId}`)
+  },
+  getHistory(limit = 50) {
+    return api.get('/browse-history', { params: { limit } })
+  },
+  getCount() {
+    return api.get('/browse-history/count')
+  },
+  clearHistory() {
+    return api.delete('/browse-history')
+  },
+  deleteRecord(bookId) {
+    return api.delete(`/browse-history/${bookId}`)
+  }
+}

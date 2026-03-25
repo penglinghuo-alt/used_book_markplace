@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { userApi, friendshipApi } from '@/api'
+import { userApi, friendshipApi, followApi } from '@/api'
 import { useUserStore } from '@/stores/user'
 import { useFriendshipStore } from '@/stores/friendship'
 import dayjs from 'dayjs'
@@ -20,12 +20,16 @@ const friendStatus = ref('none')
 const showRequestModal = ref(false)
 const requestMessage = ref('')
 const submitting = ref(false)
+const followCounts = ref({ following: 0, followers: 0 })
+const isFollowing = ref(false)
 
 async function fetchUser() {
   try {
     const res = await userApi.getUserById(route.params.id)
     user.value = res.user || res
     await checkFriendStatus()
+    await fetchFollowCounts()
+    await checkFollowStatus()
   } catch (error) {
     console.error('获取用户信息失败:', error)
     router.back()
@@ -40,6 +44,44 @@ async function checkFriendStatus() {
     friendStatus.value = res.status
   } catch (e) {
     console.error('检查好友状态失败', e)
+  }
+}
+
+async function fetchFollowCounts() {
+  try {
+    const res = await followApi.getCounts(route.params.id)
+    followCounts.value = res.data || { following: 0, followers: 0 }
+  } catch (e) {
+    console.error('获取关注统计失败', e)
+  }
+}
+
+async function checkFollowStatus() {
+  try {
+    const res = await followApi.checkStatus(route.params.id)
+    isFollowing.value = res.data?.isFollowing || false
+  } catch (e) {
+    console.error('检查关注状态失败', e)
+  }
+}
+
+async function handleFollow() {
+  if (!userStore.isLoggedIn) {
+    router.push({ name: 'Login', query: { redirect: route.fullPath } })
+    return
+  }
+  try {
+    if (isFollowing.value) {
+      await followApi.unfollow(route.params.id)
+      isFollowing.value = false
+      followCounts.value.followers--
+    } else {
+      await followApi.follow(route.params.id)
+      isFollowing.value = true
+      followCounts.value.followers++
+    }
+  } catch (e) {
+    alert(e.message || '操作失败')
   }
 }
 
@@ -109,6 +151,11 @@ const isOwnProfile = computed(() => {
           <span v-else>{{ user.username?.charAt(0).toUpperCase() || '?' }}</span>
         </div>
         <h2 class="username">{{ user.username }}</h2>
+        <div class="follow-stats">
+          <span class="stat"><strong>{{ followCounts.following }}</strong> 关注</span>
+          <span class="divider">|</span>
+          <span class="stat"><strong>{{ followCounts.followers }}</strong> 粉丝</span>
+        </div>
         <p class="join-date" v-if="user.created_at">
           <span>📅</span> 加入于 {{ formatDate(user.created_at) }}
         </p>
@@ -136,7 +183,15 @@ const isOwnProfile = computed(() => {
         <p class="bio-text">{{ user.bio }}</p>
       </div>
 
-      <div class="action-section" v-if="!isOwnProfile">
+      <div class="action-section" v-if="!isOwnProfile && userStore.isLoggedIn">
+        <button 
+          class="action-btn follow-btn"
+          :class="{ following: isFollowing }"
+          @click="handleFollow"
+        >
+          <span>{{ isFollowing ? '✓' : '+' }}</span>
+          <span>{{ isFollowing ? '已关注' : '关注' }}</span>
+        </button>
         <button 
           v-if="friendStatus === 'friends'" 
           class="action-btn primary" 
@@ -305,6 +360,28 @@ const isOwnProfile = computed(() => {
   margin-bottom: 8px;
 }
 
+.follow-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.follow-stats .stat {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.follow-stats .stat strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.follow-stats .divider {
+  color: var(--text-tertiary);
+}
+
 .join-date {
   display: flex;
   align-items: center;
@@ -356,19 +433,45 @@ const isOwnProfile = computed(() => {
 
 .action-section {
   margin-top: 24px;
+  display: flex;
+  gap: 12px;
 }
 
 .action-btn {
-  width: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px;
+  padding: 14px;
   border-radius: var(--radius);
   font-size: 1rem;
   font-weight: 600;
   transition: all var(--transition);
+}
+
+.action-btn.follow-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.action-btn.follow-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.action-btn.follow-btn.following {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.action-btn.follow-btn.following:hover {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
 }
 
 .action-btn.primary {

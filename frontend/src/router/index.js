@@ -83,6 +83,24 @@ const routes = [
     name: 'Friends',
     component: () => import('@/views/friends/Friends.vue'),
     meta: { title: '好友', requiresAuth: true }
+  },
+  {
+    path: '/following',
+    name: 'Following',
+    component: () => import('@/views/user/Following.vue'),
+    meta: { title: '我的关注', requiresAuth: true }
+  },
+  {
+    path: '/followers',
+    name: 'Followers',
+    component: () => import('@/views/user/Followers.vue'),
+    meta: { title: '我的粉丝', requiresAuth: true }
+  },
+  {
+    path: '/browse-history',
+    name: 'BrowseHistory',
+    component: () => import('@/views/user/BrowseHistory.vue'),
+    meta: { title: '浏览历史', requiresAuth: true }
   }
 ]
 
