@@ -38,7 +38,7 @@ async function fetchBrowseHistory() {
   browseLoading.value = true
   try {
     const history = await browseHistoryApi.getHistory(10)
-    browseHistory.value = history.list || []
+    browseHistory.value = Array.isArray(history) ? history : (history.list || [])
   } catch (e) {
     console.error('获取浏览历史失败', e)
   } finally {
@@ -92,7 +92,9 @@ function formatTime(time) {
 }
 
 function attachHistoryToLog(book) {
-  const historyEntry = `[${book.title}] - ${book.author || '未知作者'} - 浏览时间: ${formatTime(book.created_at)}`
+  const title = book.title || book.book_title || '未知书籍'
+  const author = book.author || book.book_author || '未知作者'
+  const historyEntry = `[${title}] - ${author} - 浏览时间: ${formatTime(book.viewed_at || book.created_at)}`
   if (form.value.logContent) {
     form.value.logContent += '\n' + historyEntry
   } else {
@@ -103,9 +105,11 @@ function attachHistoryToLog(book) {
 function attachAllHistory() {
   if (browseHistory.value.length === 0) return
   
-  const historyText = browseHistory.value.map(book => 
-    `[${book.title}] - ${book.author || '未知作者'} - 浏览时间: ${formatTime(book.created_at)}`
-  ).join('\n')
+  const historyText = browseHistory.value.map(book => {
+    const title = book.title || book.book_title || '未知书籍'
+    const author = book.author || book.book_author || '未知作者'
+    return `[${title}] - ${author} - 浏览时间: ${formatTime(book.viewed_at || book.created_at)}`
+  }).join('\n')
   
   if (form.value.logContent) {
     form.value.logContent += '\n--- 最近浏览记录 ---\n' + historyText
@@ -226,19 +230,19 @@ function attachAllHistory() {
             <div v-if="browseLoading" class="history-loading">
               加载中...
             </div>
-            <div v-else-if="browseHistory.length === 0" class="history-empty">
+            <div v-if="browseHistory.length === 0" class="history-empty">
               暂无浏览记录
             </div>
             <div v-else class="history-list">
               <div 
                 v-for="book in browseHistory" 
-                :key="book.id" 
+                :key="book.id || book.book_id" 
                 class="history-item"
               >
                 <div class="history-info">
-                  <span class="history-name">{{ book.title }}</span>
-                  <span class="history-author">{{ book.author || '未知作者' }}</span>
-                  <span class="history-time">{{ formatTime(book.created_at) }}</span>
+                  <span class="history-name">{{ book.title || book.book_title || '未知书籍' }}</span>
+                  <span class="history-author">{{ book.author || book.book_author || '未知作者' }}</span>
+                  <span class="history-time">{{ formatTime(book.viewed_at || book.created_at) }}</span>
                 </div>
                 <button class="attach-btn" @click="attachHistoryToLog(book)">
                   附加
