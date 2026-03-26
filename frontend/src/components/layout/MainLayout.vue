@@ -18,7 +18,7 @@ const showTutorial = ref(false)
 const tutorialStep = ref(0)
 
 const isLoggedIn = computed(() => {
-  return !!localStorage.getItem('token') && !!localStorage.getItem('user')
+  return userStore.isLoggedIn
 })
 
 const showNav = computed(() => {
