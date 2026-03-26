@@ -4,11 +4,9 @@ import { useRouter } from 'vue-router'
 import { browseHistoryApi } from '@/api'
 import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
 
 dayjs.locale('zh-cn')
-dayjs.extend(relativeTime)
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -55,7 +53,7 @@ function formatTime(time) {
   if (!time) return '未知'
   const d = dayjs(time)
   if (!d.isValid()) return '未知'
-  return d.fromNow()
+  return d.format('YYYY-MM-DD HH:mm')
 }
 
 function formatPrice(price) {
