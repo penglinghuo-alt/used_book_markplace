@@ -13,8 +13,32 @@ const themeStore = useThemeStore()
 const messageStore = useMessageStore()
 const friendshipStore = useFriendshipStore()
 
+const isLoggedIn = computed(() => {
+  return !!localStorage.getItem('token') && !!localStorage.getItem('user')
+})
+
 const showNav = computed(() => {
   return route.meta.requiresAuth !== undefined || route.name === 'Market'
+})
+
+const navItems = [
+  { path: '/market', name: 'market', icon: '📚', label: '市场' },
+  { path: '/seller', name: 'seller', icon: '📖', label: '书架' },
+  { path: '/friends', name: 'friends', icon: '👥', label: '好友' },
+  { path: '/messages', name: 'messages', icon: '💬', label: '消息' },
+  { path: '/profile', name: 'profile', icon: '👤', label: '我的' }
+]
+
+const isActive = (path) => route.path.startsWith(path)
+
+onMounted(() => {
+  if (isLoggedIn.value) {
+    messageStore.fetchUnreadCount()
+    friendshipStore.fetchPendingCount()
+    setInterval(() => {
+      messageStore.fetchUnreadCount()
+    }, 30000)
+  }
 })
 
 const navItems = [
@@ -47,7 +71,7 @@ onMounted(() => {
           <span class="logo-text">二手书市</span>
         </div>
         
-        <nav class="header-nav" v-if="userStore.isLoggedIn">
+        <nav class="header-nav" v-if="isLoggedIn">
           <router-link 
             v-for="item in navItems" 
             :key="item.path"
@@ -71,7 +95,7 @@ onMounted(() => {
             <span v-else>🦊</span>
           </button>
           
-          <template v-if="userStore.isLoggedIn">
+          <template v-if="isLoggedIn">
             <router-link to="/seller/publish" class="publish-btn">
               <span>+</span>
               <span>发布</span>
@@ -89,7 +113,7 @@ onMounted(() => {
       <slot />
     </main>
 
-    <nav class="app-tabbar" v-if="showNav && userStore.isLoggedIn">
+    <nav class="app-tabbar" v-if="showNav && isLoggedIn">
       <router-link 
         v-for="item in navItems" 
         :key="item.path"
