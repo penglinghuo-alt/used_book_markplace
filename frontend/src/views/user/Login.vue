@@ -264,6 +264,7 @@ async function resetPassword() {
             class="form-input"
             placeholder="请输入绑定的手机号"
             maxlength="11"
+            autocomplete="off"
             :disabled="foundUsername"
           />
         </div>

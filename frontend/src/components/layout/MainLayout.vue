@@ -14,6 +14,8 @@ const messageStore = useMessageStore()
 const friendshipStore = useFriendshipStore()
 
 const appReady = ref(false)
+const showTutorial = ref(false)
+const tutorialStep = ref(0)
 
 const isLoggedIn = computed(() => {
   return !!localStorage.getItem('token') && !!localStorage.getItem('user')
@@ -24,11 +26,21 @@ const showNav = computed(() => {
 })
 
 const navItems = [
-  { path: '/market', name: 'market', icon: '📚', label: '市场' },
-  { path: '/seller', name: 'seller', icon: '📖', label: '书架' },
-  { path: '/friends', name: 'friends', icon: '👥', label: '好友' },
-  { path: '/messages', name: 'messages', icon: '💬', label: '消息' },
-  { path: '/profile', name: 'profile', icon: '👤', label: '我的' }
+  { path: '/market', name: 'market', icon: '📚', label: '市场', desc: '浏览和搜索二手书籍' },
+  { path: '/seller', name: 'seller', icon: '📖', label: '书架', desc: '管理你发布的书籍' },
+  { path: '/friends', name: 'friends', icon: '👥', label: '好友', desc: '添加和管理好友' },
+  { path: '/messages', name: 'messages', icon: '💬', label: '消息', desc: '查看聊天消息' },
+  { path: '/profile', name: 'profile', icon: '👤', label: '我的', desc: '个人资料设置' }
+]
+
+const tutorialSteps = [
+  { target: '.logo', title: '欢迎来到二手书市', content: '这是我们的logo，点击可以返回首页' },
+  { target: '.publish-btn', title: '发布书籍', content: '想要卖书？点击这里发布你的书籍' },
+  { target: '[data-tutorial="market"]', title: '市场', content: '在这里浏览所有可购买的二手书籍' },
+  { target: '[data-tutorial="seller"]', title: '书架', content: '在这里管理你发布的书籍，查看销售情况' },
+  { target: '[data-tutorial="friends"]', title: '好友', content: '添加好友后可以方便地进行聊天' },
+  { target: '[data-tutorial="messages"]', title: '消息', content: '与买家或卖家聊天的地方' },
+  { target: '[data-tutorial="profile"]', title: '我的', content: '查看和修改你的个人资料' }
 ]
 
 const isActive = (path) => route.path.startsWith(path)
@@ -43,32 +55,59 @@ onMounted(() => {
         messageStore.fetchUnreadCount()
       }, 30000)
     }
+    
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial')
+    if (!hasSeenTutorial) {
+      showTutorial.value = true
+    }
   }, 100)
 })
 
-const showNav = computed(() => {
-  return route.meta.requiresAuth !== undefined || route.name === 'Market'
-})
+const startTutorial = () => {
+  tutorialStep.value = 0
+  showTutorial.value = true
+  localStorage.setItem('hasSeenTutorial', 'true')
+  highlightStep()
+}
 
-const navItems = [
-  { path: '/market', name: 'market', icon: '📚', label: '市场' },
-  { path: '/seller', name: 'seller', icon: '📖', label: '书架' },
-  { path: '/friends', name: 'friends', icon: '👥', label: '好友' },
-  { path: '/messages', name: 'messages', icon: '💬', label: '消息' },
-  { path: '/profile', name: 'profile', icon: '👤', label: '我的' }
-]
+const skipTutorial = () => {
+  showTutorial.value = false
+  localStorage.setItem('hasSeenTutorial', 'true')
+  clearHighlights()
+}
 
-const isActive = (path) => route.path.startsWith(path)
-
-onMounted(() => {
-  if (isLoggedIn.value) {
-    messageStore.fetchUnreadCount()
-    friendshipStore.fetchPendingCount()
-    setInterval(() => {
-      messageStore.fetchUnreadCount()
-    }, 30000)
+const nextStep = () => {
+  if (tutorialStep.value < tutorialSteps.length - 1) {
+    tutorialStep.value++
+    highlightStep()
+  } else {
+    skipTutorial()
   }
-})
+}
+
+const prevStep = () => {
+  if (tutorialStep.value > 0) {
+    tutorialStep.value--
+    highlightStep()
+  }
+}
+
+const highlightStep = () => {
+  clearHighlights()
+  const step = tutorialSteps[tutorialStep.value]
+  if (!step) return
+  
+  const elements = document.querySelectorAll(step.target)
+  if (elements.length > 0) {
+    elements.forEach(el => el.classList.add('tutorial-highlight'))
+  }
+}
+
+const clearHighlights = () => {
+  document.querySelectorAll('.tutorial-highlight').forEach(el => {
+    el.classList.remove('tutorial-highlight')
+  })
+}
 </script>
 
 <template>
@@ -87,6 +126,7 @@ onMounted(() => {
             :to="item.path"
             class="nav-item"
             :class="{ active: isActive(item.path) }"
+            :data-tutorial="item.name"
           >
             <span class="nav-icon">{{ item.icon }}</span>
             <span class="nav-label">{{ item.label }}</span>
@@ -105,10 +145,13 @@ onMounted(() => {
           </button>
           
           <template v-if="isLoggedIn">
-            <router-link to="/seller/publish" class="publish-btn">
+            <router-link to="/seller/publish" class="publish-btn" data-tutorial="publish">
               <span>+</span>
               <span>发布</span>
             </router-link>
+            <button class="tutorial-btn" @click="startTutorial" title="查看新手教程">
+              ❓
+            </button>
           </template>
           <template v-else>
             <router-link to="/login" class="auth-btn">登录</router-link>
@@ -129,6 +172,7 @@ onMounted(() => {
         :to="item.path"
         class="tab-item"
         :class="{ active: isActive(item.path) }"
+        :data-tutorial="item.name"
       >
         <span class="tab-icon">
           {{ item.icon }}
@@ -138,6 +182,35 @@ onMounted(() => {
         <span class="tab-label">{{ item.label }}</span>
       </router-link>
     </nav>
+
+    <div class="tutorial-overlay" v-if="showTutorial" @click="skipTutorial"></div>
+    
+    <div class="tutorial-popover" v-if="showTutorial && tutorialSteps[tutorialStep]">
+      <div class="tutorial-card">
+        <div class="tutorial-header">
+          <h3>{{ tutorialSteps[tutorialStep].title }}</h3>
+          <button class="tutorial-close" @click="skipTutorial">×</button>
+        </div>
+        <div class="tutorial-content">
+          <p>{{ tutorialSteps[tutorialStep].content }}</p>
+        </div>
+        <div class="tutorial-footer">
+          <div class="tutorial-progress">
+            <span v-for="i in tutorialSteps.length" :key="i" 
+              class="progress-dot" 
+              :class="{ active: i - 1 <= tutorialStep }">
+            </span>
+          </div>
+          <div class="tutorial-actions">
+            <button class="tutorial-btn-skip" @click="skipTutorial">我是老手</button>
+            <button class="tutorial-btn-prev" @click="prevStep" v-if="tutorialStep > 0">上一步</button>
+            <button class="tutorial-btn-next" @click="nextStep">
+              {{ tutorialStep === tutorialSteps.length - 1 ? '完成' : '下一步' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -362,5 +435,176 @@ onMounted(() => {
   .logo-text {
     font-size: 18px;
   }
+}
+
+.tutorial-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all var(--transition);
+  background: rgba(79, 70, 229, 0.1);
+  border: none;
+  cursor: pointer;
+}
+
+.tutorial-btn:hover {
+  background: rgba(79, 70, 229, 0.2);
+  transform: scale(1.1);
+}
+
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  pointer-events: auto;
+}
+
+.tutorial-popover {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: 90%;
+  max-width: 400px;
+}
+
+.tutorial-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  border: 2px solid var(--primary);
+}
+
+.tutorial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+.tutorial-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.tutorial-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+
+.tutorial-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tutorial-content {
+  padding: 20px;
+}
+
+.tutorial-content p {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.tutorial-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tutorial-progress {
+  display: flex;
+  gap: 6px;
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all var(--transition);
+}
+
+.progress-dot.active {
+  background: var(--primary);
+  transform: scale(1.2);
+}
+
+.tutorial-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.tutorial-btn-skip,
+.tutorial-btn-prev,
+.tutorial-btn-next {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: none;
+}
+
+.tutorial-btn-skip {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.tutorial-btn-skip:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.tutorial-btn-prev {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tutorial-btn-prev:hover {
+  background: var(--border);
+}
+
+.tutorial-btn-next {
+  background: var(--primary);
+  color: white;
+}
+
+.tutorial-btn-next:hover {
+  background: var(--primary-dark);
+}
+
+:global(.tutorial-highlight) {
+  position: relative;
+  z-index: 9997;
+  box-shadow: 0 0 0 4px var(--primary), 0 0 20px rgba(79, 70, 229, 0.5) !important;
+  border-radius: var(--radius) !important;
 }
 </style>
