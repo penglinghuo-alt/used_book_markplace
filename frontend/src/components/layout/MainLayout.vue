@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
@@ -13,8 +13,37 @@ const themeStore = useThemeStore()
 const messageStore = useMessageStore()
 const friendshipStore = useFriendshipStore()
 
+const appReady = ref(false)
+
 const isLoggedIn = computed(() => {
   return !!localStorage.getItem('token') && !!localStorage.getItem('user')
+})
+
+const showNav = computed(() => {
+  return appReady.value && (route.meta.requiresAuth !== undefined || route.name === 'Market')
+})
+
+const navItems = [
+  { path: '/market', name: 'market', icon: '📚', label: '市场' },
+  { path: '/seller', name: 'seller', icon: '📖', label: '书架' },
+  { path: '/friends', name: 'friends', icon: '👥', label: '好友' },
+  { path: '/messages', name: 'messages', icon: '💬', label: '消息' },
+  { path: '/profile', name: 'profile', icon: '👤', label: '我的' }
+]
+
+const isActive = (path) => route.path.startsWith(path)
+
+onMounted(() => {
+  setTimeout(() => {
+    appReady.value = true
+    if (isLoggedIn.value) {
+      messageStore.fetchUnreadCount()
+      friendshipStore.fetchPendingCount()
+      setInterval(() => {
+        messageStore.fetchUnreadCount()
+      }, 30000)
+    }
+  }, 100)
 })
 
 const showNav = computed(() => {
