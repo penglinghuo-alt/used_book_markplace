@@ -159,11 +159,12 @@ async function handleRegister() {
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
-            class="form-input"
+            class="form-input phone-input"
             placeholder="请输入手机号"
             maxlength="11"
             autocomplete="off"
             spellcheck="false"
+            data-1p-ignore="true"
           />
         </div>
 
@@ -437,5 +438,20 @@ async function handleRegister() {
   .register-container {
     padding: 32px 24px;
   }
+}
+
+.phone-input {
+  -webkit-text-security: none;
+  ime-mode: disabled;
+}
+
+.phone-input::-webkit-outer-spin-button,
+.phone-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.phone-input[type='number'] {
+  -moz-appearance: textfield;
 }
 </style>
