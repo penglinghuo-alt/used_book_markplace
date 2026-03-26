@@ -1,7 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { logApi } from '@/api'
+import { logApi, browseHistoryApi } from '@/api'
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
+
+dayjs.locale('zh-cn')
 
 const router = useRouter()
 
@@ -10,6 +14,8 @@ const loading = ref(false)
 const submitting = ref(false)
 const success = ref(false)
 const error = ref('')
+const browseHistory = ref([])
+const browseLoading = ref(false)
 
 const form = ref({
   logType: 'error',
@@ -24,7 +30,21 @@ onMounted(async () => {
   } catch (e) {
     console.error('获取日志类型失败', e)
   }
+  
+  fetchBrowseHistory()
 })
+
+async function fetchBrowseHistory() {
+  browseLoading.value = true
+  try {
+    const history = await browseHistoryApi.getHistory(10)
+    browseHistory.value = history.list || []
+  } catch (e) {
+    console.error('获取浏览历史失败', e)
+  } finally {
+    browseLoading.value = false
+  }
+}
 
 function handleLogTypeChange(type) {
   form.value.logType = type
@@ -65,6 +85,33 @@ async function handleSubmit() {
 
 function getSelectedTypeInfo() {
   return logTypes.value.find(t => t.value === form.value.logType) || {}
+}
+
+function formatTime(time) {
+  return dayjs(time).fromNow()
+}
+
+function attachHistoryToLog(book) {
+  const historyEntry = `[${book.title}] - ${book.author || '未知作者'} - 浏览时间: ${formatTime(book.created_at)}`
+  if (form.value.logContent) {
+    form.value.logContent += '\n' + historyEntry
+  } else {
+    form.value.logContent = historyEntry
+  }
+}
+
+function attachAllHistory() {
+  if (browseHistory.value.length === 0) return
+  
+  const historyText = browseHistory.value.map(book => 
+    `[${book.title}] - ${book.author || '未知作者'} - 浏览时间: ${formatTime(book.created_at)}`
+  ).join('\n')
+  
+  if (form.value.logContent) {
+    form.value.logContent += '\n--- 最近浏览记录 ---\n' + historyText
+  } else {
+    form.value.logContent = '--- 最近浏览记录 ---\n' + historyText
+  }
 }
 </script>
 
@@ -163,6 +210,41 @@ function getSelectedTypeInfo() {
               <li>如果有网络请求失败，切换到 Network 标签查看</li>
               <li>粘贴相关内容到上方文本框</li>
             </ul>
+          </div>
+
+          <div class="history-card">
+            <div class="history-header">
+              <h3 class="history-title">最近浏览记录</h3>
+              <button 
+                v-if="browseHistory.length > 0" 
+                class="attach-all-btn"
+                @click="attachAllHistory"
+              >
+                附上全部
+              </button>
+            </div>
+            <div v-if="browseLoading" class="history-loading">
+              加载中...
+            </div>
+            <div v-else-if="browseHistory.length === 0" class="history-empty">
+              暂无浏览记录
+            </div>
+            <div v-else class="history-list">
+              <div 
+                v-for="book in browseHistory" 
+                :key="book.id" 
+                class="history-item"
+              >
+                <div class="history-info">
+                  <span class="history-name">{{ book.title }}</span>
+                  <span class="history-author">{{ book.author || '未知作者' }}</span>
+                  <span class="history-time">{{ formatTime(book.created_at) }}</span>
+                </div>
+                <button class="attach-btn" @click="attachHistoryToLog(book)">
+                  附加
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -413,5 +495,111 @@ function getSelectedTypeInfo() {
   font-size: 0.85rem;
   color: var(--text-secondary);
   line-height: 1.8;
+}
+
+.history-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.history-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.attach-all-btn {
+  padding: 4px 12px;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.attach-all-btn:hover {
+  background: var(--primary-dark);
+}
+
+.history-loading,
+.history-empty {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 12px 0;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.history-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-author {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.history-time {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+}
+
+.attach-btn {
+  padding: 4px 10px;
+  background: var(--bg-secondary);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  margin-left: 10px;
+}
+
+.attach-btn:hover {
+  background: var(--primary);
+  color: white;
 }
 </style>
