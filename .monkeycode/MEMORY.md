@@ -31,6 +31,41 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 
 ## 条目
 
+### 2026-03-26 待继续工作
+
+[二手书项目 - 新手教程和手机号问题修复]
+- Date: 2026-03-27
+- Context: 用户睡觉前记录
+- 已完成：
+  1. **新手教程功能** - MainLayout.vue 中添加了交互式教程，登录后自动弹出，可逐步引导新用户了解各功能
+  2. **手机号问题修复** - 修复了多个问题：
+     - 登录接口返回 phone 字段
+     - getProfile 接口返回 phone 字段
+     - EditProfile 页面正确显示"已绑定"状态
+     - 用户数据库中 phone 字段为 15220231923
+  3. **导航栏显示问题** - 修复登录后导航栏显示不正确的问题
+  4. **好友列表性能优化** - 添加 pinyin 缓存提升性能
+  5. **未读消息请求优化** - 添加防抖和缓存减少重复请求
+
+- 待解决：
+  1. **好友页面加载慢** - unread-count 请求耗时 500ms-2.3s，可能是网络问题，需进一步排查
+     - 已在 message.js 添加缓存优化
+     - 需要重新部署前端测试效果
+
+- 部署命令：
+  ```bash
+  # 后端
+  cd /www/wwwroot/used-book-marketplace && git pull && pkill -f "node src/app.js" || true && source ~/.bashrc && nvm use 20 && node src/app.js &
+
+  # 前端
+  cd /www/wwwroot/used-book-marketplace/frontend && git pull && source ~/.bashrc && nvm use 20 && npm run build && nginx -s reload
+  ```
+
+- 数据库信息：
+  - 数据库名：120_24_189_110
+  - 用户：root / 123456
+  - 用户表 phone 字段已确认有值：15220231923
+
 ### 2026-03-25 待继续功能
 
 [二手书项目当前进度和待完成功能]
