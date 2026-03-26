@@ -101,6 +101,12 @@ const routes = [
     name: 'BrowseHistory',
     component: () => import('@/views/user/BrowseHistory.vue'),
     meta: { title: '浏览历史', requiresAuth: true }
+  },
+  {
+    path: '/report-issue',
+    name: 'ReportIssue',
+    component: () => import('@/views/user/ReportIssue.vue'),
+    meta: { title: '问题反馈', requiresAuth: true }
   }
 ]
 

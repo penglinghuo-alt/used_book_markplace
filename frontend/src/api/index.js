@@ -199,3 +199,12 @@ export const browseHistoryApi = {
     return api.delete(`/browse-history/${bookId}`)
   }
 }
+
+export const logApi = {
+  uploadLog(data) {
+    return api.post('/logs/upload', data)
+  },
+  getLogTypes() {
+    return api.get('/logs/types')
+  }
+}

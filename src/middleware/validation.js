@@ -11,6 +11,7 @@
 
 const { body, param, query, validationResult } = require('express-validator');
 const logger = require('../config/logger');
+const { isBlacklistUsername } = require('./antiBot');
 
 /**
  * 处理验证结果的中间件
@@ -58,7 +59,13 @@ const usernameValidation = body('username')
     .isLength({ min: 2, max: 30 })
     .withMessage('用户名长度必须为 2-30 个字符')
     .matches(/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/)
-    .withMessage('用户名只能包含中文、字母、数字和下划线');
+    .withMessage('用户名只能包含中文、字母、数字和下划线')
+    .custom((value) => {
+        if (isBlacklistUsername(value)) {
+            throw new Error('该用户名不可用，请选择其他用户名');
+        }
+        return true;
+    });
 
 /**
  * 密码验证规则

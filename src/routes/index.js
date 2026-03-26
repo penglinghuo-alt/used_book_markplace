@@ -14,6 +14,7 @@ const transactionRoutes = require('./transactionRoutes');
 const friendshipRoutes = require('./friendshipRoutes');
 const followRoutes = require('./followRoutes');
 const browseHistoryRoutes = require('./browseHistoryRoutes');
+const logRoutes = require('./logRoutes');
 
 // ==================== 路由挂载 ====================
 
@@ -119,6 +120,16 @@ router.use('/follow', followRoutes);
  * - DELETE /api/browse-history/:bookId      - 删除单条记录
  */
 router.use('/browse-history', browseHistoryRoutes);
+
+/**
+ * 日志相关路由
+ * 前缀: /api/logs
+ * 
+ * 接口列表:
+ * - POST   /api/logs/upload      - 上传用户日志
+ * - GET    /api/logs/types      - 获取支持的日志类型
+ */
+router.use('/logs', logRoutes);
 
 // ==================== 健康检查 ====================
 

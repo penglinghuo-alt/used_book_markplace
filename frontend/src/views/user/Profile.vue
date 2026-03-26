@@ -177,6 +177,17 @@ onMounted(() => {
         </div>
 
         <div class="menu-section">
+          <h3 class="section-title">帮助与反馈</h3>
+          <div class="menu-list">
+            <router-link to="/report-issue" class="menu-item">
+              <span class="menu-icon">🐛</span>
+              <span class="menu-label">问题反馈</span>
+              <span class="menu-arrow">›</span>
+            </router-link>
+          </div>
+        </div>
+
+        <div class="menu-section">
           <h3 class="section-title">账户管理</h3>
           <div class="menu-list">
             <router-link to="/profile/edit" class="menu-item">

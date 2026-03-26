@@ -13,6 +13,12 @@ const { upload } = require('../middleware/upload');
 const { generateCaptcha, validateCaptcha } = require('../utils/captcha');
 const { sendSmsCode, verifySmsCode } = require('../utils/sms');
 const { strictRateLimiter } = require('../middleware/rateLimiter');
+const { 
+    ipRegistrationLimiter, 
+    usernameBlacklistChecker, 
+    usernameRegistrationHistory,
+    recordRegistration 
+} = require('../middleware/antiBot');
 const {
     validate,
     registerValidation,
@@ -226,8 +232,12 @@ router.post(
         windowMs: 60 * 1000,
         maxRequests: 3
     }),
+    ipRegistrationLimiter,
+    usernameBlacklistChecker,
+    usernameRegistrationHistory,
     validate(registerValidation),
-    userController.register
+    userController.register,
+    recordRegistration
 );
 
 /**
