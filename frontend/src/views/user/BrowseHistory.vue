@@ -18,7 +18,7 @@ async function fetchHistory() {
   loading.value = true
   try {
     const res = await browseHistoryApi.getHistory(100)
-    history.value = res.data || []
+    history.value = Array.isArray(res) ? res : []
   } catch (e) {
     console.error('获取浏览历史失败', e)
   } finally {
