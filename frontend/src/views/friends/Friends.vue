@@ -20,17 +20,24 @@ const requests = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
 
+const pinyinCache = {}
+
 function getPinyinInitial(name) {
   if (!name) return '#'
+  if (pinyinCache[name]) return pinyinCache[name]
+  
   const firstChar = name.charAt(0)
   if (/[A-Za-z]/.test(firstChar)) {
-    return firstChar.toUpperCase()
+    pinyinCache[name] = firstChar.toUpperCase()
+    return pinyinCache[name]
   }
   const result = pinyin(firstChar, { style: pinyin.STYLE_FIRST_LETTER })
   if (result && result[0] && result[0][0]) {
-    return result[0][0].toUpperCase()
+    pinyinCache[name] = result[0][0].toUpperCase()
+    return pinyinCache[name]
   }
-  return '#'
+  pinyinCache[name] = '#'
+  return pinyinCache[name]
 }
 
 async function fetchFriends() {
