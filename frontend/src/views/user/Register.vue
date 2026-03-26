@@ -156,11 +156,14 @@ async function handleRegister() {
           </label>
           <input 
             v-model="form.phone"
-            type="tel" 
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
             class="form-input"
             placeholder="请输入手机号"
             maxlength="11"
             autocomplete="off"
+            spellcheck="false"
           />
         </div>
 
