@@ -50,7 +50,10 @@ function goToBook(book) {
 }
 
 function formatTime(time) {
-  return dayjs(time).fromNow()
+  if (!time) return '未知'
+  const d = dayjs(time)
+  if (!d.isValid()) return '未知'
+  return d.fromNow()
 }
 
 function formatPrice(price) {
