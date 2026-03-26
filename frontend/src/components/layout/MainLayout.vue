@@ -40,26 +40,6 @@ onMounted(() => {
     }, 30000)
   }
 })
-
-const navItems = [
-  { path: '/market', name: 'market', icon: '📚', label: '市场' },
-  { path: '/seller', name: 'seller', icon: '📖', label: '书架' },
-  { path: '/friends', name: 'friends', icon: '👥', label: '好友' },
-  { path: '/messages', name: 'messages', icon: '💬', label: '消息' },
-  { path: '/profile', name: 'profile', icon: '👤', label: '我的' }
-]
-
-const isActive = (path) => route.path.startsWith(path)
-
-onMounted(() => {
-  if (userStore.isLoggedIn) {
-    messageStore.fetchUnreadCount()
-    friendshipStore.fetchPendingCount()
-    setInterval(() => {
-      messageStore.fetchUnreadCount()
-    }, 30000)
-  }
-})
 </script>
 
 <template>
