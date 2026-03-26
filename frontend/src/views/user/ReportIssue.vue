@@ -3,9 +3,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { logApi, browseHistoryApi } from '@/api'
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
 
 dayjs.locale('zh-cn')
+dayjs.extend(relativeTime)
 
 const router = useRouter()
 
