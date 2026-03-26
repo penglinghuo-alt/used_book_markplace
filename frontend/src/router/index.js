@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/stores/user'
 
 const routes = [
   {
@@ -123,12 +122,12 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const userStore = useUserStore()
+  const isLoggedIn = !!localStorage.getItem('token') && !!localStorage.getItem('user')
   document.title = to.meta.title ? `${to.meta.title} - 二手书市` : '二手书市'
 
-  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
+  if (to.meta.requiresAuth && !isLoggedIn) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
-  } else if (to.meta.guest && userStore.isLoggedIn) {
+  } else if (to.meta.guest && isLoggedIn) {
     next({ name: 'Market' })
   } else {
     next()
