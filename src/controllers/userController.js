@@ -132,6 +132,8 @@ const login = asyncHandler(async (req, res) => {
                 username: user.username,
                 bio: user.bio,
                 wechat_id: user.wechat_id,
+                phone: user.phone,
+                avatar_url: user.avatar_url,
                 created_at: user.created_at
             },
             token
