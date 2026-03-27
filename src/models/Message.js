@@ -196,7 +196,7 @@ class Message {
                 WHERE m.id IN (
                     SELECT MAX(id) FROM messages
                     WHERE sender_id = ? OR receiver_id = ?
-                    GROUP BY LEAST(sender_id, receiver_id), GREATEST(sender_id, receiver_id)
+                    GROUP BY IF(sender_id < receiver_id, sender_id, receiver_id), IF(sender_id < receiver_id, receiver_id, sender_id)
                 )
                 ORDER BY m.sent_at DESC
             `;
