@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { messageApi } from '@/api'
 import { useUserStore } from '@/stores/user'
@@ -56,6 +56,27 @@ function formatTime(time) {
 onMounted(() => {
   fetchConversations()
   messageStore.fetchUnreadCount()
+  
+  // 每 5 秒刷新一次会话列表
+  const interval = setInterval(() => {
+    fetchConversations()
+    messageStore.fetchUnreadCount()
+  }, 5000)
+  
+  // 页面可见性变化时刷新
+  const handleVisibility = () => {
+    if (!document.hidden) {
+      fetchConversations()
+      messageStore.fetchUnreadCount()
+    }
+  }
+  document.addEventListener('visibilitychange', handleVisibility)
+  
+  // 清理
+  onUnmounted(() => {
+    clearInterval(interval)
+    document.removeEventListener('visibilitychange', handleVisibility)
+  })
 })
 </script>
 
