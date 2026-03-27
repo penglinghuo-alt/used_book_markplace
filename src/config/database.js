@@ -299,7 +299,7 @@ async function initializeDatabase() {
                 is_used TINYINT(1) DEFAULT 0 COMMENT '是否已被使用',
                 used_by_user_id INT DEFAULT NULL COMMENT '使用此卡密的用户ID',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                used_at TIMIMESTAMP NULL COMMENT '使用时间',
+                used_at TIMESTAMP NULL COMMENT '使用时间',
                 INDEX idx_card_key (card_key),
                 INDEX idx_is_used (is_used)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员卡密表'
