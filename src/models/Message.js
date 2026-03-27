@@ -211,14 +211,14 @@ class Message {
             const placeholders = partnerIds.map(() => '?').join(',');
             
             const unreadSql = `
-                SELECT receiver_id as partner_id, COUNT(*) as unread_count
+                SELECT sender_id as partner_id, COUNT(*) as unread_count
                 FROM messages 
-                WHERE receiver_id IN (${placeholders}) 
-                  AND sender_id = ?
+                WHERE receiver_id = ?
+                  AND sender_id IN (${placeholders})
                   AND (is_read = 0 OR is_read IS NULL)
-                GROUP BY receiver_id
+                GROUP BY sender_id
             `;
-            const unreadCounts = await db.query(unreadSql, [...partnerIds, userId]);
+            const unreadCounts = await db.query(unreadSql, [userId, ...partnerIds]);
             const unreadMap = {};
             unreadCounts.forEach(row => {
                 unreadMap[row.partner_id] = row.unread_count;
