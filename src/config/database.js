@@ -129,10 +129,12 @@ async function initializeDatabase() {
             image_url VARCHAR(500) DEFAULT NULL COMMENT '书籍图片URL',
             category ENUM('teaching', 'textbook', 'notebook', 'other') DEFAULT 'other' COMMENT '分类: teaching=教辅, textbook=课本, notebook=笔记本, other=其他',
             status ENUM('active', 'sold') DEFAULT 'active' COMMENT '状态: active=挂售中, sold=已售出',
+            sort_order INT DEFAULT 0 COMMENT '排序顺序，数字越大越靠前',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '挂售时间',
             INDEX idx_seller_id (seller_id),
             INDEX idx_status (status),
             INDEX idx_category (category),
+            INDEX idx_sort_order (sort_order),
             FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='书籍/挂售表'
     `;
@@ -288,6 +290,49 @@ async function initializeDatabase() {
         
         await query(createBrowseHistoryTable);
         console.log('✅ browse_history 表创建成功');
+        
+        const createAdminKeysTable = `
+            CREATE TABLE IF NOT EXISTS admin_keys (
+                id INT AUTO_INCREMENT PRIMARY KEY COMMENT '卡密ID',
+                card_key VARCHAR(128) NOT NULL UNIQUE COMMENT '64位卡密',
+                admin_name VARCHAR(50) NOT NULL DEFAULT '东方海林' COMMENT '管理员名称',
+                is_used TINYINT(1) DEFAULT 0 COMMENT '是否已被使用',
+                used_by_user_id INT DEFAULT NULL COMMENT '使用此卡密的用户ID',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                used_at TIMIMESTAMP NULL COMMENT '使用时间',
+                INDEX idx_card_key (card_key),
+                INDEX idx_is_used (is_used)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员卡密表'
+        `;
+        
+        await query(createAdminKeysTable);
+        console.log('✅ admin_keys 表创建成功');
+        
+        const createFeedbackLogsTable = `
+            CREATE TABLE IF NOT EXISTS feedback_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY COMMENT '反馈ID',
+                user_id INT NOT NULL COMMENT '提交用户ID',
+                username VARCHAR(50) NOT NULL COMMENT '提交用户名',
+                log_type ENUM('error', 'client', 'performance', 'network', 'other') DEFAULT 'other' COMMENT '日志类型',
+                description TEXT COMMENT '问题描述',
+                content TEXT COMMENT '日志内容',
+                ip VARCHAR(45) DEFAULT NULL COMMENT 'IP地址',
+                user_agent VARCHAR(500) DEFAULT NULL COMMENT '用户代理',
+                status ENUM('pending', 'replied', 'resolved', 'closed') DEFAULT 'pending' COMMENT '状态',
+                admin_reply TEXT NULL COMMENT '管理员回复',
+                replied_at TIMESTAMP NULL COMMENT '回复时间',
+                replied_by VARCHAR(50) DEFAULT NULL COMMENT '回复人',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                INDEX idx_user_id (user_id),
+                INDEX idx_status (status),
+                INDEX idx_log_type (log_type),
+                INDEX idx_created_at (created_at),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户反馈日志表'
+        `;
+        
+        await query(createFeedbackLogsTable);
+        console.log('✅ feedback_logs 表创建成功');
         
         console.log('🎉 数据库初始化完成!');
     } catch (error) {

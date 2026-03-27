@@ -15,6 +15,7 @@ const friendshipRoutes = require('./friendshipRoutes');
 const followRoutes = require('./followRoutes');
 const browseHistoryRoutes = require('./browseHistoryRoutes');
 const logRoutes = require('./logRoutes');
+const adminRoutes = require('./adminRoutes');
 
 // ==================== 路由挂载 ====================
 
@@ -130,6 +131,27 @@ router.use('/browse-history', browseHistoryRoutes);
  * - GET    /api/logs/types      - 获取支持的日志类型
  */
 router.use('/logs', logRoutes);
+
+/**
+ * 管理员相关路由
+ * 前缀: /api/admin
+ * 
+ * 接口列表:
+ * - POST   /api/admin/login            - 管理员登录（卡密）
+ * - GET    /api/admin/stats            - 获取统计数据
+ * - GET    /api/admin/books           - 获取所有书籍
+ * - POST   /api/admin/books           - 创建书籍
+ * - PUT    /api/admin/books/reorder   - 批量更新排序
+ * - PUT    /api/admin/books/:id       - 更新书籍
+ * - DELETE /api/admin/books/:id       - 删除书籍
+ * - GET    /api/admin/users           - 获取所有用户
+ * - POST   /api/admin/users           - 创建用户
+ * - PUT    /api/admin/users/:id       - 更新用户
+ * - DELETE /api/admin/users/:id       - 删除用户
+ * - GET    /api/admin/feedbacks       - 获取所有反馈
+ * - POST   /api/admin/feedbacks/:id/reply - 回复反馈
+ */
+router.use('/admin', adminRoutes);
 
 // ==================== 健康检查 ====================
 

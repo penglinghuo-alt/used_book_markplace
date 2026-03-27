@@ -208,3 +208,45 @@ export const logApi = {
     return api.get('/logs/types')
   }
 }
+
+export const adminApi = {
+  login(cardKey) {
+    return api.post('/admin/login', { cardKey })
+  },
+  getStats() {
+    return api.get('/admin/stats')
+  },
+  getBooks(params) {
+    return api.get('/admin/books', { params })
+  },
+  createBook(data) {
+    return api.post('/admin/books', data)
+  },
+  updateBook(id, data) {
+    return api.put(`/admin/books/${id}`, data)
+  },
+  deleteBook(id) {
+    return api.delete(`/admin/books/${id}`)
+  },
+  reorderBooks(bookOrders) {
+    return api.put('/admin/books/reorder', { bookOrders })
+  },
+  getUsers(params) {
+    return api.get('/admin/users', { params })
+  },
+  createUser(data) {
+    return api.post('/admin/users', data)
+  },
+  updateUser(id, data) {
+    return api.put(`/admin/users/${id}`, data)
+  },
+  deleteUser(id) {
+    return api.delete(`/admin/users/${id}`)
+  },
+  getFeedbacks(params) {
+    return api.get('/admin/feedbacks', { params })
+  },
+  replyFeedback(id, data) {
+    return api.post(`/admin/feedbacks/${id}/reply`, data)
+  }
+}

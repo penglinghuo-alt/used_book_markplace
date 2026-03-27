@@ -13,6 +13,7 @@ const logger = require('../config/logger');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const db = require('../config/database');
 
 const logUploadsDir = path.join(process.cwd(), 'uploads', 'user-logs');
 if (!fs.existsSync(logUploadsDir)) {
@@ -76,11 +77,26 @@ router.post(
 
             fs.writeFileSync(filepath, JSON.stringify(logEntry, null, 2), 'utf8');
 
+            const insertSql = `
+                INSERT INTO feedback_logs (user_id, username, log_type, description, content, ip, user_agent, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
+            `;
+            const feedbackId = await db.insert(insertSql, [
+                req.user.id,
+                req.user.username || 'unknown',
+                logType,
+                description || '',
+                JSON.stringify(logEntry),
+                req.ip || req.connection.remoteAddress,
+                req.get('user-agent') || ''
+            ]);
+
             logger.info(`用户上传日志`, {
                 userId: req.user.id,
                 logType,
                 filename,
-                description
+                description,
+                feedbackId
             });
 
             res.status(201).json({
@@ -89,7 +105,8 @@ router.post(
                 data: {
                     filename,
                     logType,
-                    uploadedAt: logEntry.timestamp
+                    uploadedAt: logEntry.timestamp,
+                    feedbackId
                 }
             });
         } catch (error) {

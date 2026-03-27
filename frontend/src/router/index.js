@@ -106,6 +106,18 @@ const routes = [
     name: 'ReportIssue',
     component: () => import('@/views/user/ReportIssue.vue'),
     meta: { title: '问题反馈', requiresAuth: true }
+  },
+  {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: () => import('@/views/admin/AdminLogin.vue'),
+    meta: { title: '管理员登录' }
+  },
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: () => import('@/views/admin/AdminDashboard.vue'),
+    meta: { title: '管理后台' }
   }
 ]
 
