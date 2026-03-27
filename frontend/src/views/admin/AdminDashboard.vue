@@ -196,6 +196,10 @@ function goToPage(page) {
   if (page < 1 || page > pagination.value.totalPages) return
   handlePageChange(page)
 }
+
+function getRowNumber(index) {
+  return (pagination.value.page - 1) * pagination.value.limit + index + 1
+}
 </script>
 
 <template>
@@ -272,21 +276,21 @@ function goToPage(page) {
           <table>
             <thead>
               <tr>
-                <th>ID</th>
+                <th>序号</th>
                 <th>书名</th>
                 <th>作者</th>
                 <th>价格</th>
                 <th>分类</th>
                 <th>卖家</th>
                 <th>状态</th>
-                <th>排序</th>
+                <th>排序值</th>
                 <th>发布时间</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="book in books" :key="book.id">
-                <td>{{ book.id }}</td>
+              <tr v-for="(book, index) in books" :key="book.id">
+                <td>{{ getRowNumber(index) }}</td>
                 <td class="title-cell">{{ book.title }}</td>
                 <td>{{ book.author }}</td>
                 <td>¥{{ Number(book.price).toFixed(2) }}</td>
