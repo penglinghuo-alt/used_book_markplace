@@ -54,11 +54,12 @@ onMounted(() => {
       setInterval(() => {
         messageStore.fetchUnreadCount()
       }, 30000)
-    }
-    
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial')
-    if (!hasSeenTutorial) {
-      showTutorial.value = true
+      
+      const isAuthPage = route.path === '/login' || route.path === '/register'
+      const hasSeenTutorial = localStorage.getItem('hasSeenTutorial')
+      if (!hasSeenTutorial && !isAuthPage) {
+        showTutorial.value = true
+      }
     }
   }, 100)
 })
