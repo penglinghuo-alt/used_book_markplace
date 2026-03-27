@@ -158,9 +158,15 @@ class Book {
     static async findBySeller(sellerId, status = null) {
         try {
             let sql = `
-                SELECT b.*, u.username as seller_name
+                SELECT b.*, 
+                       u.username as seller_name,
+                       t.buyer_id,
+                       buyer.username as buyer_name,
+                       buyer.wechat_id as buyer_wechat
                 FROM books b
                 JOIN users u ON b.seller_id = u.id
+                LEFT JOIN transactions t ON b.id = t.book_id
+                LEFT JOIN users buyer ON t.buyer_id = buyer.id
                 WHERE b.seller_id = ?
             `;
             const params = [sellerId];

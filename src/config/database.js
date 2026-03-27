@@ -147,6 +147,7 @@ async function initializeDatabase() {
             book_id INT DEFAULT NULL COMMENT '关联的书籍ID(可选)',
             content TEXT NOT NULL COMMENT '消息内容',
             is_read TINYINT(1) DEFAULT 0 COMMENT '是否已读：0-未读，1-已读',
+            is_deleted_by_sender TINYINT(1) DEFAULT 0 COMMENT '发送者是否删除：0-未删，1-已删除',
             sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
             INDEX idx_sender_id (sender_id),
             INDEX idx_receiver_id (receiver_id),

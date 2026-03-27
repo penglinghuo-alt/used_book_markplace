@@ -111,6 +111,17 @@ function isMyMessage(msg) {
   return msg.sender_id === userStore.user?.id
 }
 
+async function handleDeleteMessage(msgId) {
+  if (!confirm('确定删除这条消息吗？')) return
+  try {
+    await messageApi.deleteMessage(msgId)
+    messages.value = messages.value.filter(m => m.id !== msgId)
+  } catch (e) {
+    console.error('删除消息失败', e)
+    alert('删除失败')
+  }
+}
+
 function goToUserProfile() {
   if (otherUser.value?.id) {
     router.push(`/user/${otherUser.value.id}`)
@@ -178,7 +189,14 @@ onUnmounted(() => {
         >
           <div class="message-bubble">
             <p class="message-content">{{ msg.content }}</p>
-            <span class="message-time">{{ formatTime(msg.sent_at || msg.created_at) }}</span>
+            <div class="message-footer">
+              <span class="message-time">{{ formatTime(msg.sent_at || msg.created_at) }}</span>
+              <button 
+                v-if="isMyMessage(msg)" 
+                class="delete-msg-btn"
+                @click="handleDeleteMessage(msg.id)"
+              >删除</button>
+            </div>
           </div>
         </div>
       </div>
@@ -405,6 +423,29 @@ onUnmounted(() => {
   margin-top: 4px;
   opacity: 0.7;
   text-align: right;
+}
+
+.message-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-msg-btn {
+  font-size: 0.625rem;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 4px;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.delete-msg-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .input-area {

@@ -204,6 +204,11 @@ onMounted(() => {
                 <span class="book-price">¥{{ Number(book.price).toFixed(2) }}</span>
                 <span class="book-time">{{ formatTime(book.created_at) }}</span>
               </div>
+              <div v-if="book.status === 'sold' && book.buyer_name" class="buyer-info">
+                <span class="buyer-label">买家：</span>
+                <span class="buyer-name">{{ book.buyer_name }}</span>
+                <span v-if="book.buyer_wechat" class="buyer-wechat">({{ book.buyer_wechat }})</span>
+              </div>
             </div>
             <div class="book-status">
               <span class="status-tag" :class="book.status">
@@ -523,6 +528,25 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.buyer-info {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.buyer-label {
+  color: var(--text-tertiary);
+}
+
+.buyer-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.buyer-wechat {
   color: var(--text-tertiary);
 }
 

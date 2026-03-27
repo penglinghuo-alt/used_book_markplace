@@ -92,7 +92,6 @@ class Message {
         try {
             const offset = (page - 1) * limit;
             
-            // 查询与特定用户的聊天记录（双向）
             const sql = `
                 SELECT m.*, 
                        s.username as sender_name,
@@ -102,8 +101,9 @@ class Message {
                 JOIN users s ON m.sender_id = s.id
                 JOIN users r ON m.receiver_id = r.id
                 LEFT JOIN books b ON m.book_id = b.id
-                WHERE (m.sender_id = ? AND m.receiver_id = ?)
-                   OR (m.sender_id = ? AND m.receiver_id = ?)
+                WHERE ((m.sender_id = ? AND m.receiver_id = ?)
+                   OR (m.sender_id = ? AND m.receiver_id = ?))
+                  AND NOT (m.sender_id = ? AND m.is_deleted_by_sender = 1)
                 ORDER BY m.sent_at DESC
                 LIMIT ? OFFSET ?
             `;
@@ -111,24 +111,26 @@ class Message {
             const messages = await db.query(sql, [
                 userId, otherUserId, 
                 otherUserId, userId,
+                userId,
                 limit.toString(), offset.toString()
             ]);
             
-            // 获取消息总数
             const countSql = `
                 SELECT COUNT(*) as total 
                 FROM messages 
-                WHERE (sender_id = ? AND receiver_id = ?)
-                   OR (sender_id = ? AND receiver_id = ?)
+                WHERE ((sender_id = ? AND receiver_id = ?)
+                   OR (sender_id = ? AND receiver_id = ?))
+                  AND NOT (sender_id = ? AND is_deleted_by_sender = 1)
             `;
             const countResult = await db.query(countSql, [
                 userId, otherUserId, 
-                otherUserId, userId
+                otherUserId, userId,
+                userId
             ]);
             const total = countResult[0].total;
             
             return {
-                messages: messages.reverse(),  // 按时间正序返回
+                messages: messages.reverse(),
                 pagination: {
                     page,
                     limit,
@@ -233,19 +235,18 @@ class Message {
     }
 
     /**
-     * 删除消息（仅发送者可删除）
+     * 删除消息（仅发送者可删除，单方面删除）
      * @param {number} id - 消息ID
      * @param {number} userId - 用户ID（校验发送者身份）
      * @returns {Promise<boolean>} 删除是否成功
      */
     static async delete(id, userId) {
         try {
-            // 确保只有发送者可以删除自己的消息
-            const sql = 'DELETE FROM messages WHERE id = ? AND sender_id = ?';
+            const sql = 'UPDATE messages SET is_deleted_by_sender = 1 WHERE id = ? AND sender_id = ?';
             const affectedRows = await db.execute(sql, [id, userId]);
             
             if (affectedRows > 0) {
-                logger.info(`消息删除成功`, { messageId: id, userId });
+                logger.info(`消息删除成功（单方面）`, { messageId: id, userId });
             }
             
             return affectedRows > 0;
