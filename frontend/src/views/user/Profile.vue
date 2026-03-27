@@ -25,6 +25,7 @@ const user = computed(() => userStore.user)
 
 const showPasswordModal = ref(false)
 const showSupportModal = ref(false)
+const supportQrUrl = '/uploads/support.jpg'
 const passwordForm = ref({
   oldPassword: '',
   newPassword: '',
@@ -307,7 +308,7 @@ onMounted(() => {
           感谢你的支持，你的支持将是网站延续的动力<br/>
           <span class="support-warning">（未成年人不要付款，谢谢）</span>
         </p>
-        <img src="/uploads/support.jpg" alt="收款码" class="support-qr" />
+        <img :src="supportQrUrl" alt="收款码" class="support-qr" />
       </div>
     </div>
   </div>
