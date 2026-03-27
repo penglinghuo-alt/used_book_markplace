@@ -24,6 +24,7 @@ const followCounts = ref({
 const user = computed(() => userStore.user)
 
 const showPasswordModal = ref(false)
+const showSupportModal = ref(false)
 const passwordForm = ref({
   oldPassword: '',
   newPassword: '',
@@ -188,6 +189,17 @@ onMounted(() => {
         </div>
 
         <div class="menu-section">
+          <h3 class="section-title">支持网站</h3>
+          <div class="menu-list">
+            <div class="menu-item" @click="showSupportModal = true">
+              <span class="menu-icon">💝</span>
+              <span class="menu-label">支持一下</span>
+              <span class="menu-arrow">›</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-section">
           <h3 class="section-title">账户管理</h3>
           <div class="menu-list">
             <router-link to="/profile/edit" class="menu-item">
@@ -279,6 +291,23 @@ onMounted(() => {
         <button class="submit-btn" @click="handlePasswordChange" :disabled="passwordLoading">
           {{ passwordLoading ? '修改中...' : '确认修改' }}
         </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showSupportModal" class="modal-overlay" @click.self="showSupportModal = false">
+    <div class="modal-content support-modal">
+      <div class="modal-header">
+        <h3>支持一下</h3>
+        <button class="modal-close" @click="showSupportModal = false">×</button>
+      </div>
+      <div class="modal-body support-body">
+        <p class="support-text">
+          如果你喜欢这个网站，可以花1块钱支持一下<br/>
+          感谢你的支持，你的支持将是网站延续的动力<br/>
+          <span class="support-warning">（未成年人不要付款，谢谢）</span>
+        </p>
+        <img src="/uploads/support.jpg" alt="收款码" class="support-qr" />
       </div>
     </div>
   </div>
@@ -750,5 +779,31 @@ onMounted(() => {
 .dark .error-alert {
   background: rgba(239, 68, 68, 0.2);
   color: #f87171;
+}
+
+.support-modal {
+  max-width: 360px;
+}
+
+.support-body {
+  text-align: center;
+}
+
+.support-text {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.support-warning {
+  color: #f59e0b;
+  font-size: 0.8rem;
+}
+
+.support-qr {
+  max-width: 250px;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>
