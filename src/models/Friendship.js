@@ -77,8 +77,7 @@ class Friendship {
                 CASE WHEN f.user_id = ? THEN 'sent' ELSE 'received' END as relation_type
             FROM friendships f
             JOIN users u ON u.id = CASE WHEN f.user_id = ? THEN f.friend_id ELSE f.user_id END
-            WHERE ((f.user_id = ? AND f.status = 'accepted') 
-               OR (f.friend_id = ? AND f.status = 'accepted'))
+            WHERE f.status = 'accepted' AND (f.user_id = ? OR f.friend_id = ?)
             ORDER BY f.updated_at DESC
         `;
         return await db.query(sql, [userId, userId, userId, userId, userId]);

@@ -149,6 +149,8 @@ async function initializeDatabase() {
             INDEX idx_sender_id (sender_id),
             INDEX idx_receiver_id (receiver_id),
             INDEX idx_book_id (book_id),
+            INDEX idx_sender_receiver (sender_id, receiver_id),
+            INDEX idx_receiver_sender (receiver_id, sender_id),
             FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE SET NULL
@@ -242,6 +244,8 @@ async function initializeDatabase() {
                 INDEX idx_user_id (user_id),
                 INDEX idx_friend_id (friend_id),
                 INDEX idx_status (status),
+                INDEX idx_user_status (user_id, status),
+                INDEX idx_friend_status (friend_id, status),
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='好友关系表'

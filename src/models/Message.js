@@ -183,42 +183,49 @@ class Message {
         try {
             const sql = `
                 SELECT 
-                    CASE 
-                        WHEN m.sender_id = ? THEN m.receiver_id 
-                        ELSE m.sender_id 
-                    END as other_user_id,
+                    m.id,
+                    CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END as other_user_id,
                     u.username as other_user_name,
                     u.avatar_url as other_user_avatar,
                     m.content as last_message,
-                    m.sent_at as last_message_time,
-                    (SELECT COUNT(*) FROM messages 
-                     WHERE sender_id = CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END
-                       AND receiver_id = ?
-                       AND (is_read = 0 OR is_read IS NULL)) as unread_count
+                    m.sent_at as last_message_time
                 FROM messages m
-                JOIN users u ON u.id = CASE 
-                    WHEN m.sender_id = ? THEN m.receiver_id 
-                    ELSE m.sender_id 
-                END
+                JOIN users u ON u.id = CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END
                 WHERE m.id IN (
                     SELECT MAX(id) FROM messages
                     WHERE sender_id = ? OR receiver_id = ?
-                    GROUP BY CASE 
-                        WHEN sender_id = ? THEN receiver_id 
-                        ELSE sender_id 
-                    END
+                    GROUP BY LEAST(sender_id, receiver_id), GREATEST(sender_id, receiver_id)
                 )
                 ORDER BY m.sent_at DESC
             `;
             
-            const conversations = await db.query(sql, [
-                userId, userId, userId,
-                userId,
-                userId, userId,
-                userId
-            ]);
+            const conversations = await db.query(sql, [userId, userId, userId, userId]);
             
-            return conversations;
+            if (conversations.length === 0) {
+                return [];
+            }
+
+            const partnerIds = conversations.map(c => c.other_user_id);
+            const placeholders = partnerIds.map(() => '?').join(',');
+            
+            const unreadSql = `
+                SELECT receiver_id as partner_id, COUNT(*) as unread_count
+                FROM messages 
+                WHERE receiver_id IN (${placeholders}) 
+                  AND sender_id = ?
+                  AND (is_read = 0 OR is_read IS NULL)
+                GROUP BY receiver_id
+            `;
+            const unreadCounts = await db.query(unreadSql, [...partnerIds, userId]);
+            const unreadMap = {};
+            unreadCounts.forEach(row => {
+                unreadMap[row.partner_id] = row.unread_count;
+            });
+            
+            return conversations.map(conv => ({
+                ...conv,
+                unread_count: unreadMap[conv.other_user_id] || 0
+            }));
         } catch (error) {
             logger.error('获取会话列表失败', { error: error.message, userId });
             throw error;
