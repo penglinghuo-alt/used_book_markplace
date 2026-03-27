@@ -85,32 +85,34 @@ onMounted(() => {
           </router-link>
         </div>
 
-        <div v-else class="conversations-list">
-          <div 
-            v-for="conv in conversations" 
-            :key="conv.id || conv.other_user_id"
-            class="conversation-item"
-            @click="goToChat(conv)"
-          >
-            <div class="avatar">
-              <img v-if="conv.other_user_avatar" :src="conv.other_user_avatar" :alt="conv.other_user_name" class="avatar-img" />
-              <span v-else>{{ conv.other_user_name?.charAt(0).toUpperCase() || '?' }}</span>
-            </div>
-            <div class="conv-info">
-              <div class="conv-header">
-                <span class="conv-name">{{ conv.other_user_name || '未知用户' }}</span>
-                <span class="conv-time">{{ formatTime(conv.last_message_time) }}</span>
+          <div v-else class="conversations-list">
+            <div 
+              v-for="conv in conversations" 
+              :key="conv.id || conv.other_user_id"
+              class="conversation-item"
+              :class="{ unread: conv.unread_count > 0 }"
+              @click="goToChat(conv)"
+            >
+              <div class="avatar">
+                <img v-if="conv.other_user_avatar" :src="conv.other_user_avatar" :alt="conv.other_user_name" class="avatar-img" />
+                <span v-else>{{ conv.other_user_name?.charAt(0).toUpperCase() || '?' }}</span>
               </div>
-              <p class="conv-preview">
-                {{ conv.last_message || '暂无消息' }}
-              </p>
-            </div>
-            <div class="conv-right">
-              <span v-if="conv.unread_count > 0" class="unread-badge">{{ conv.unread_count > 99 ? '99+' : conv.unread_count }}</span>
-              <span class="conv-arrow">›</span>
+              <div class="conv-info">
+                <div class="conv-header">
+                  <span class="conv-name">{{ conv.other_user_name || '未知用户' }}</span>
+                  <span class="conv-time">{{ formatTime(conv.last_message_time) }}</span>
+                </div>
+                <p class="conv-preview" :class="{ bold: conv.unread_count > 0 }">
+                  <span v-if="conv.unread_count > 0" class="new-msg-tip">有新消息 · </span>
+                  {{ conv.last_message || '暂无消息' }}
+                </p>
+              </div>
+              <div class="conv-right">
+                <span v-if="conv.unread_count > 0" class="unread-badge">{{ conv.unread_count > 99 ? '99+' : conv.unread_count }}</span>
+                <span class="conv-arrow">›</span>
+              </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   </div>
@@ -232,6 +234,14 @@ onMounted(() => {
   background: var(--bg-hover);
 }
 
+.conversation-item.unread {
+  background: rgba(79, 70, 229, 0.05);
+}
+
+.dark .conversation-item.unread {
+  background: rgba(79, 70, 229, 0.1);
+}
+
 .avatar {
   width: 52px;
   height: 52px;
@@ -281,6 +291,15 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.conv-preview.bold {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.new-msg-tip {
+  color: #ef4444;
 }
 
 .conv-right {
