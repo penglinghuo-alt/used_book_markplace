@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { friendshipApi } from '@/api'
 import { useUserStore } from '@/stores/user'
 import { useFriendshipStore } from '@/stores/friendship'
 import dayjs from 'dayjs'
@@ -43,8 +42,7 @@ function getPinyinInitial(name) {
 async function fetchFriends() {
   loading.value = true
   try {
-    const res = await friendshipApi.getFriends()
-    friends.value = res?.friends || []
+    friends.value = await friendshipStore.fetchFriends()
   } catch (e) {
     console.error('获取好友列表失败', e)
   } finally {
@@ -55,8 +53,7 @@ async function fetchFriends() {
 async function fetchRequests() {
   loading.value = true
   try {
-    const res = await friendshipApi.getPendingRequests()
-    requests.value = res?.requests || []
+    requests.value = await friendshipStore.fetchRequests()
   } catch (e) {
     console.error('获取好友申请失败', e)
   } finally {
@@ -71,12 +68,21 @@ const filteredFriends = computed(() => {
   return friends.value.filter(f => f.friend_name?.toLowerCase().includes(query))
 })
 
+const friendLetterMap = computed(() => {
+  const map = {}
+  if (!Array.isArray(friends.value)) return map
+  friends.value.forEach(friend => {
+    map[friend.friend_id] = getPinyinInitial(friend.friend_name)
+  })
+  return map
+})
+
 const groupedFriends = computed(() => {
   const groups = {}
   const arr = filteredFriends.value
   if (!Array.isArray(arr)) return groups
   arr.forEach(friend => {
-    const letter = getPinyinInitial(friend.friend_name)
+    const letter = friendLetterMap.value[friend.friend_id] || '#'
     if (!groups[letter]) groups[letter] = []
     groups[letter].push(friend)
   })
