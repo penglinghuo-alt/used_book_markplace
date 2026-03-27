@@ -31,6 +31,31 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 
 ## 条目
 
+### 2026-03-27 好友页面性能优化
+
+[好友页面加载慢问题修复]
+- Date: 2026-03-27
+- Context: 好友页面刷新首次进入很卡
+
+- 已完成优化：
+  1. **前端 Friends API 缓存** - friendship.js 添加 fetchFriends/fetchRequests 缓存（10秒）
+  2. **前端消息 API 缓存** - message.js 添加缓存（5秒）+ fetchPromise 防重
+  3. **getConversationsList 查询重写** - 移除子查询，改为分开查询再合并
+  4. **数据库复合索引** - messages 表添加 (sender_id, receiver_id) 和 (receiver_id, sender_id) 复合索引
+  5. **数据库复合索引** - friendships 表添加 (user_id, status) 和 (friend_id, status) 复合索引
+  6. **getFriends 查询简化** - 简化 OR 条件便于索引生效
+
+- 待部署验证：需要在服务器执行数据库迁移（自动通过 CREATE TABLE IF NOT EXISTS）
+
+- 部署命令：
+  ```bash
+  # 后端
+  cd /www/wwwroot/used-book-marketplace && git pull && pkill -f "node src/app.js" || true && source ~/.bashrc && nvm use 20 && node src/app.js &
+
+  # 前端
+  cd /www/wwwroot/used-book-marketplace/frontend && git pull && source ~/.bashrc && nvm use 20 && npm run build && nginx -s reload
+  ```
+
 ### 2026-03-26 待继续工作
 
 [二手书项目 - 新手教程和手机号问题修复]
